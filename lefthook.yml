@@ -1,0 +1,18 @@
+commit-msg:
+  scripts:
+    "commitlint.sh":
+      runner: bash
+
+pre-commit:
+  commands:
+    check:
+      run: bun run check:fix && git update-index --again
+    type_check:
+      run: bun run type:check
+
+pre-push:
+  commands:
+    check:
+      run: bun run check:fix && git update-index --again
+    type_check:
+      run: bun run type:check

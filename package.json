@@ -6,11 +6,15 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.2.0",
+		"@commitlint/cli": "^20.2.0",
+		"@commitlint/config-conventional": "^20.2.0",
 		"@tailwindcss/postcss": "^4",
 		"@types/node": "^20",
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
 		"babel-plugin-react-compiler": "1.0.0",
+		"commitlint": "^20.2.0",
+		"lefthook": "^2.0.8",
 		"tailwindcss": "^4",
 		"typescript": "^5"
 	},
@@ -18,18 +22,20 @@
 		"sharp",
 		"unrs-resolver"
 	],
-	"name": "my-bun-app",
+	"name": "web3-dex-dashboard",
 	"private": true,
 	"scripts": {
 		"build": "next build",
+		"check": "biome check",
+		"check:fix": "biome check --fix",
 		"dev": "next dev",
-		"format": "biome format --write",
-		"lint": "biome check",
-		"start": "next start"
+		"start": "next start",
+		"type:check": "tsc --noEmit"
 	},
 	"trustedDependencies": [
 		"sharp",
 		"unrs-resolver"
 	],
+	"type": "module",
 	"version": "0.1.0"
 }
