@@ -13,10 +13,10 @@ import type { ConnectionStatus, TickerData } from "@/types"
 interface BinanceTickerMessage {
 	stream: string
 	data: {
-		s: string // Symbol
-		c: string // Current price
-		p: string // Price change
-		P: string // Price change percent
+		s: string /* Symbol */
+		c: string /* Current price */
+		p: string /* Price change */
+		P: string /* Price change percent */
 	}
 }
 

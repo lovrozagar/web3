@@ -5,7 +5,6 @@ import {
 	BINANCE_WS_BASE,
 	DEFAULT_DEPTH_PAIR,
 	DEPTH_LEVELS,
-	DEPTH_UPDATE_SPEED,
 	MAX_RECONNECT_ATTEMPTS,
 	RECONNECT_DELAY,
 } from "@/lib/constants"
@@ -18,9 +17,9 @@ interface BinanceDepthMessage {
 	asks: [string, string][]
 }
 
-function processOrders(orders: [string, string][], isBid: boolean): OrderBookEntry[] {
+function processOrders(orders: [string, string][]): OrderBookEntry[] {
 	let runningTotal = 0
-	const processed = orders.map(([price, quantity]) => {
+	return orders.map(([price, quantity]) => {
 		const qty = Number.parseFloat(quantity)
 		runningTotal += qty
 		return {
@@ -29,7 +28,6 @@ function processOrders(orders: [string, string][], isBid: boolean): OrderBookEnt
 			total: runningTotal,
 		}
 	})
-	return isBid ? processed : processed
 }
 
 export function useBinanceDepth(pair: string = DEFAULT_DEPTH_PAIR) {
@@ -40,16 +38,41 @@ export function useBinanceDepth(pair: string = DEFAULT_DEPTH_PAIR) {
 		spreadPercent: "0",
 	})
 	const [status, setStatus] = useState<ConnectionStatus>("disconnected")
+
 	const wsRef = useRef<WebSocket | null>(null)
 	const reconnectAttempts = useRef(0)
 	const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+	const rafRef = useRef<number | null>(null)
+	const pendingDataRef = useRef<BinanceDepthMessage | null>(null)
+
+	const processUpdate = useCallback(() => {
+		const data = pendingDataRef.current
+		if (!data) return
+
+		const bids = processOrders(data.bids)
+		const asks = processOrders(data.asks)
+
+		const bestBid = data.bids[0]?.[0] ?? "0"
+		const bestAsk = data.asks[0]?.[0] ?? "0"
+		const { spread, percent } = calculateSpread(bestBid, bestAsk)
+
+		setOrderBook({
+			asks,
+			bids,
+			spread,
+			spreadPercent: percent,
+		})
+
+		pendingDataRef.current = null
+	}, [])
 
 	const connect = useCallback(() => {
 		if (wsRef.current?.readyState === WebSocket.OPEN) {
 			wsRef.current.close()
 		}
 
-		const url = `${BINANCE_WS_BASE}/ws/${pair.toLowerCase()}@depth${DEPTH_LEVELS}@${DEPTH_UPDATE_SPEED}`
+		/* Binance only supports 100ms or 1000ms update speeds */
+		const url = `${BINANCE_WS_BASE}/ws/${pair.toLowerCase()}@depth${DEPTH_LEVELS}@100ms`
 
 		setStatus("connecting")
 		wsRef.current = new WebSocket(url)
@@ -61,20 +84,15 @@ export function useBinanceDepth(pair: string = DEFAULT_DEPTH_PAIR) {
 
 		wsRef.current.onmessage = (event) => {
 			const data: BinanceDepthMessage = JSON.parse(event.data)
+			pendingDataRef.current = data
 
-			const bids = processOrders(data.bids, true)
-			const asks = processOrders(data.asks, false)
-
-			const bestBid = data.bids[0]?.[0] ?? "0"
-			const bestAsk = data.asks[0]?.[0] ?? "0"
-			const { spread, percent } = calculateSpread(bestBid, bestAsk)
-
-			setOrderBook({
-				asks,
-				bids,
-				spread,
-				spreadPercent: percent,
-			})
+			/* Batch updates with frame rendering via RAF */
+			if (rafRef.current === null) {
+				rafRef.current = requestAnimationFrame(() => {
+					processUpdate()
+					rafRef.current = null
+				})
+			}
 		}
 
 		wsRef.current.onclose = () => {
@@ -88,7 +106,7 @@ export function useBinanceDepth(pair: string = DEFAULT_DEPTH_PAIR) {
 		wsRef.current.onerror = () => {
 			wsRef.current?.close()
 		}
-	}, [pair])
+	}, [pair, processUpdate])
 
 	useEffect(() => {
 		connect()
@@ -96,6 +114,9 @@ export function useBinanceDepth(pair: string = DEFAULT_DEPTH_PAIR) {
 		return () => {
 			if (reconnectTimeoutRef.current) {
 				clearTimeout(reconnectTimeoutRef.current)
+			}
+			if (rafRef.current !== null) {
+				cancelAnimationFrame(rafRef.current)
 			}
 			wsRef.current?.close()
 		}
