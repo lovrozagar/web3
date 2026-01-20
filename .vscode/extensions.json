@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "formulahendry.auto-rename-tag",
+    "biomejs.biome",
+    "bradlc.vscode-tailwindcss",
+    "streetsidesoftware.code-spell-checker",
+    "EditorConfig.EditorConfig",
+    "cardinal90.multi-cursor-case-preserve",
+    "waderyan.gitblame"
+  ]
+}
