@@ -80,6 +80,19 @@ export function OrderBook() {
 			<div className="flex items-center justify-between border-zinc-800/50 border-b px-2 py-2 sm:px-4 sm:py-3">
 				<h2 className="font-bold text-[13px] text-white sm:text-[15px]">Order Book</h2>
 				<div className="flex items-center gap-1.5 sm:gap-2">
+					<div className="flex items-center gap-1">
+						<div
+							className={cn(
+								"h-1.5 w-1.5 rounded-full transition-colors duration-300",
+								status === "connected" && "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.5)]",
+								status === "connecting" && "animate-pulse bg-amber-400",
+								status === "disconnected" && "bg-red-400",
+							)}
+						/>
+						<span className="hidden text-[10px] text-zinc-500 uppercase tracking-wide sm:inline">
+							{status === "connected" ? "Live" : status}
+						</span>
+					</div>
 					<div className="flex items-center rounded-lg bg-zinc-800/80 p-0.5">
 						{SPEED_OPTIONS.map((option) => (
 							<button
@@ -96,19 +109,6 @@ export function OrderBook() {
 								{option.label}
 							</button>
 						))}
-					</div>
-					<div className="flex items-center gap-1">
-						<div
-							className={cn(
-								"h-1.5 w-1.5 rounded-full transition-colors duration-300",
-								status === "connected" && "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.5)]",
-								status === "connecting" && "animate-pulse bg-amber-400",
-								status === "disconnected" && "bg-red-400",
-							)}
-						/>
-						<span className="hidden text-[10px] text-zinc-500 uppercase tracking-wide sm:inline">
-							{status === "connected" ? "Live" : status}
-						</span>
 					</div>
 				</div>
 			</div>
