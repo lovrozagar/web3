@@ -1,9 +1,14 @@
 "use client"
 
-import { memo, useMemo } from "react"
-import { useBinanceDepth } from "@/hooks/use-binance-depth"
+import { memo, useMemo, useState } from "react"
+import { type UpdateSpeed, useBinanceDepth } from "@/hooks/use-binance-depth"
 import { cn, formatPrice, formatQuantity } from "@/lib/utils"
 import type { OrderBookEntry } from "@/types"
+
+const SPEED_OPTIONS: { label: string; value: UpdateSpeed }[] = [
+	{ label: "100ms", value: "100ms" },
+	{ label: "1s", value: "1000ms" },
+]
 
 interface OrderRowProps {
 	entry: OrderBookEntry
@@ -56,7 +61,8 @@ function SkeletonRow({ type }: { type: "bid" | "ask" }) {
 }
 
 export function OrderBook() {
-	const { orderBook, status } = useBinanceDepth("ethusdt")
+	const [updateSpeed, setUpdateSpeed] = useState<UpdateSpeed>("100ms")
+	const { orderBook, status } = useBinanceDepth("ethusdt", updateSpeed)
 
 	const maxBidTotal = useMemo(
 		() => Math.max(...orderBook.bids.map((b) => b.total), 1),
@@ -73,10 +79,24 @@ export function OrderBook() {
 		<div className="flex flex-col overflow-hidden rounded-xl border border-zinc-800/80 bg-zinc-900/80 backdrop-blur-sm">
 			<div className="flex items-center justify-between border-zinc-800/50 border-b px-2 py-2 sm:px-4 sm:py-3">
 				<h2 className="font-bold text-[13px] text-white sm:text-[15px]">Order Book</h2>
-				<div className="flex items-center gap-1 sm:gap-2">
-					<span className="rounded-md bg-zinc-800/80 px-1.5 py-0.5 font-semibold text-[9px] text-zinc-200 sm:px-2.5 sm:py-1 sm:text-[11px]">
-						ETH/USDT
-					</span>
+				<div className="flex items-center gap-1.5 sm:gap-2">
+					<div className="flex items-center rounded-lg bg-zinc-800/80 p-0.5">
+						{SPEED_OPTIONS.map((option) => (
+							<button
+								className={cn(
+									"cursor-pointer rounded-md px-2 py-1 font-semibold text-[9px] transition-all sm:px-2.5 sm:text-[11px]",
+									updateSpeed === option.value
+										? "bg-zinc-700 text-white"
+										: "text-zinc-400 hover:text-zinc-200",
+								)}
+								key={option.value}
+								onClick={() => setUpdateSpeed(option.value)}
+								type="button"
+							>
+								{option.label}
+							</button>
+						))}
+					</div>
 					<div className="flex items-center gap-1">
 						<div
 							className={cn(

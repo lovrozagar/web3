@@ -30,7 +30,12 @@ function processOrders(orders: [string, string][]): OrderBookEntry[] {
 	})
 }
 
-export function useBinanceDepth(pair: string = DEFAULT_DEPTH_PAIR) {
+export type UpdateSpeed = "100ms" | "1000ms"
+
+export function useBinanceDepth(
+	pair: string = DEFAULT_DEPTH_PAIR,
+	updateSpeed: UpdateSpeed = "100ms",
+) {
 	const [orderBook, setOrderBook] = useState<OrderBookData>({
 		asks: [],
 		bids: [],
@@ -71,8 +76,7 @@ export function useBinanceDepth(pair: string = DEFAULT_DEPTH_PAIR) {
 			wsRef.current.close()
 		}
 
-		/* Binance only supports 100ms or 1000ms update speeds */
-		const url = `${BINANCE_WS_BASE}/ws/${pair.toLowerCase()}@depth${DEPTH_LEVELS}@100ms`
+		const url = `${BINANCE_WS_BASE}/ws/${pair.toLowerCase()}@depth${DEPTH_LEVELS}@${updateSpeed}`
 
 		setStatus("connecting")
 		wsRef.current = new WebSocket(url)
@@ -106,7 +110,7 @@ export function useBinanceDepth(pair: string = DEFAULT_DEPTH_PAIR) {
 		wsRef.current.onerror = () => {
 			wsRef.current?.close()
 		}
-	}, [pair, processUpdate])
+	}, [pair, updateSpeed, processUpdate])
 
 	useEffect(() => {
 		connect()
