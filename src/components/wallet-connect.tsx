@@ -38,13 +38,14 @@ export function WalletConnect() {
 								return (
 									<button
 										className={cn(
-											"rounded-lg bg-blue-500 px-4 py-2 font-medium text-white",
+											"cursor-pointer rounded-lg bg-blue-500 px-2.5 py-1.5 font-semibold text-white text-xs sm:px-4 sm:py-2 sm:text-sm",
 											"transition-colors hover:bg-blue-600",
 										)}
 										onClick={openConnectModal}
 										type="button"
 									>
-										Connect Wallet
+										<span className="hidden sm:inline">Connect Wallet</span>
+										<span className="sm:hidden">Connect</span>
 									</button>
 								)
 							}
@@ -52,7 +53,7 @@ export function WalletConnect() {
 							if (chain.unsupported) {
 								return (
 									<button
-										className="rounded-lg bg-red-500 px-4 py-2 font-medium text-white"
+										className="cursor-pointer rounded-lg bg-red-500 px-4 py-2 font-semibold text-white"
 										onClick={openChainModal}
 										type="button"
 									>
@@ -65,7 +66,7 @@ export function WalletConnect() {
 								<div className="flex items-center gap-2">
 									<button
 										className={cn(
-											"flex items-center gap-2 rounded-lg px-3 py-2",
+											"flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2",
 											"bg-zinc-800 transition-colors hover:bg-zinc-700",
 										)}
 										onClick={openChainModal}
@@ -85,18 +86,18 @@ export function WalletConnect() {
 												)}
 											</div>
 										)}
-										<span className="text-sm">{chain.name}</span>
+										<span className="font-medium text-sm">{chain.name}</span>
 									</button>
 
 									<button
 										className={cn(
-											"flex items-center gap-2 rounded-lg px-3 py-2",
+											"flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2",
 											"bg-zinc-800 transition-colors hover:bg-zinc-700",
 										)}
 										onClick={openAccountModal}
 										type="button"
 									>
-										<span className="font-medium text-sm">{account.displayName}</span>
+										<span className="font-semibold text-sm">{account.displayName}</span>
 										{account.displayBalance && (
 											<span className="text-sm text-zinc-400">{account.displayBalance}</span>
 										)}
