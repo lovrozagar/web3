@@ -7,7 +7,9 @@ import { SwapInterface } from "@/components/swap-interface"
 import { TokenPrices } from "@/components/token-prices"
 import { WalletConnect } from "@/components/wallet-connect"
 
-const CLONE_COMMAND = "git clone https://github.com/lovrozagar/web3-dex-dashboard"
+const GITHUB_REPO_URL =
+	process.env.NEXT_PUBLIC_GITHUB_REPO_URL ?? "https://github.com/lovrozagar/web3"
+const CLONE_COMMAND = `git clone ${GITHUB_REPO_URL}`
 
 const TECH_STACK = [
 	{ color: "bg-zinc-700 hover:bg-zinc-600", name: "Next.js 16", url: "https://nextjs.org" },
@@ -138,7 +140,7 @@ export default function Home() {
 
 					<a
 						className="inline-flex items-center gap-2 rounded-xl bg-blue-500 px-5 py-2.5 font-semibold text-sm text-white transition-colors hover:bg-blue-600 sm:px-6 sm:py-3 sm:text-base"
-						href="https://github.com/lovrozagar/web3-dex-dashboard"
+						href={GITHUB_REPO_URL}
 						rel="noopener noreferrer"
 						target="_blank"
 					>
@@ -189,7 +191,7 @@ export default function Home() {
 							Built with Modern Tech
 						</h3>
 						<p className="mb-8 text-[13px] text-zinc-300 sm:mb-10 sm:text-base">
-							Production-ready stack for high-performance DeFi applications
+							Next.js 16 · TypeScript · React 19 · wagmi v2 · viem · RainbowKit
 						</p>
 
 						<div className="mb-12 flex flex-wrap justify-center gap-2 sm:gap-3">
@@ -244,7 +246,7 @@ export default function Home() {
 					<div className="flex items-center justify-center gap-4">
 						<a
 							className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-[12px] text-zinc-300 transition-colors hover:text-white sm:text-sm"
-							href="https://github.com/lovrozagar/web3-dex-dashboard"
+							href={GITHUB_REPO_URL}
 							rel="noopener noreferrer"
 							target="_blank"
 						>
