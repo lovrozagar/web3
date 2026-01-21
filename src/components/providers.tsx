@@ -47,9 +47,9 @@ export function Providers({ children }: ProvidersProps) {
 	return (
 		<ThemeProvider
 			attribute="data-theme"
-			defaultTheme="dark"
+			defaultTheme="system"
 			disableTransitionOnChange
-			enableSystem={false}
+			enableSystem
 		>
 			<WagmiProvider config={config}>
 				<QueryClientProvider client={queryClient}>

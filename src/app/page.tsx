@@ -161,13 +161,13 @@ export default function Home() {
 			<main className="relative mx-auto max-w-7xl px-3 sm:px-6">
 				<section className="pt-8 pb-8 text-center sm:pt-14 sm:pb-12">
 					<h2 className="mb-2 font-extrabold text-primary text-xl sm:mb-3 sm:text-2xl">
-						Mini DEX Dashboard
+						DEX Dashboard
 					</h2>
 					<p className="mb-3 font-extrabold text-2xl text-foreground sm:mb-4 sm:text-5xl">
-						Real-time DeFi trading interface.
+						Live prices. Real order books. Actual swaps.
 					</p>
 					<p className="mx-auto mb-6 max-w-xl text-sm text-ui-fg-muted sm:mb-8 sm:text-lg">
-						Designed for developers. Built with modern tech.
+						Streaming market data via Binance WebSocket. Connect your wallet and trade.
 					</p>
 
 					<div className="mx-auto mb-5 flex max-w-lg items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-lg sm:mb-6 sm:px-5 sm:py-4">
