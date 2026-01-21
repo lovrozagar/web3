@@ -4,24 +4,35 @@
 		"@tanstack/react-query": "^5.90.19",
 		"@walletconnect/ethereum-provider": "^2.23.3",
 		"next": "16.1.4",
+		"next-themes": "^0.4.6",
 		"react": "19.2.3",
 		"react-dom": "19.2.3",
+		"sonner": "^2.0.7",
 		"viem": "^2.44.4",
 		"wagmi": "^3.3.4"
 	},
 	"devDependencies": {
+		"@axe-core/playwright": "^4.11.0",
 		"@biomejs/biome": "2.2.0",
 		"@commitlint/cli": "^20.2.0",
 		"@commitlint/config-conventional": "^20.2.0",
+		"@playwright/test": "^1.57.0",
 		"@tailwindcss/postcss": "^4",
+		"@testing-library/dom": "^10.4.1",
+		"@testing-library/jest-dom": "^6.9.1",
+		"@testing-library/react": "^16.3.2",
+		"@testing-library/user-event": "^14.6.1",
 		"@types/node": "^20",
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
+		"@vitejs/plugin-react": "^5.1.2",
 		"babel-plugin-react-compiler": "1.0.0",
 		"commitlint": "^20.2.0",
+		"jsdom": "^27.4.0",
 		"lefthook": "^2.0.8",
 		"tailwindcss": "^4",
-		"typescript": "^5"
+		"typescript": "^5",
+		"vitest": "^4.0.17"
 	},
 	"ignoreScripts": [
 		"sharp",
@@ -35,6 +46,10 @@
 		"check:fix": "biome check --fix",
 		"dev": "next dev",
 		"start": "next start",
+		"test": "vitest",
+		"test:coverage": "vitest --coverage",
+		"test:run": "vitest run",
+		"test:ui": "vitest --ui",
 		"type:check": "tsc --noEmit"
 	},
 	"trustedDependencies": [
