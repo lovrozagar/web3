@@ -1,23 +1,42 @@
 "use client"
 
-import { memo, useEffect, useRef, useState } from "react"
+import { memo, useEffect, useMemo, useRef, useState } from "react"
 import { useBinanceTicker } from "@/hooks/use-binance-ticker"
-import { cn, formatPercent, formatPrice } from "@/lib/utils"
+import { useFavoriteTokens } from "@/hooks/use-favorite-tokens"
+import { cn, formatCompactPrice, formatPercent, formatPrice, formatVolume } from "@/lib/utils"
 import type { TickerData, TokenInfo } from "@/types"
 import { SUPPORTED_TOKENS } from "@/types"
+import { ConnectionStatus } from "./connection-status"
+import { generateSparklineData, Sparkline } from "./sparkline"
 
 interface TokenRowProps {
-	token: TokenInfo
 	ticker: TickerData | undefined
+	token: TokenInfo
+	isFavorite: boolean
+	onToggleFavorite: () => void
 }
 
-const TokenRow = memo(function TokenRow({ token, ticker }: TokenRowProps) {
+const TokenRow = memo(function TokenRow({
+	ticker,
+	token,
+	isFavorite,
+	onToggleFavorite,
+}: TokenRowProps) {
 	const [flash, setFlash] = useState<"up" | "down" | null>(null)
+	const [expanded, setExpanded] = useState(false)
 	const prevPriceRef = useRef<string | null>(null)
 
 	const isPositive = ticker && Number.parseFloat(ticker.priceChangePercent) >= 0
 
-	// Detect price changes and trigger flash
+	/* generate sparkline data based on current price and change */
+	const sparklineData = useMemo(() => {
+		if (!ticker) return []
+		const price = Number.parseFloat(ticker.price)
+		const change = Number.parseFloat(ticker.priceChangePercent)
+		return generateSparklineData(price, change)
+	}, [ticker])
+
+	/* detect price changes and trigger flash */
 	useEffect(() => {
 		if (!ticker) return
 		if (prevPriceRef.current !== null && prevPriceRef.current !== ticker.price) {
@@ -33,115 +52,206 @@ const TokenRow = memo(function TokenRow({ token, ticker }: TokenRowProps) {
 	return (
 		<div
 			className={cn(
-				"group relative flex min-w-0 items-center justify-between gap-1.5 rounded-xl p-2 transition-all duration-200 sm:gap-2 sm:p-3",
-				"bg-zinc-800/40 hover:bg-zinc-800/60",
-				"border border-transparent hover:border-zinc-700/50",
+				"group relative flex min-w-0 flex-col rounded-lg",
+				"bg-ui-bg-field hover:bg-ui-bg-component",
+				"border border-transparent hover:border-ui-border-subtle",
+				expanded && "border-ui-border-subtle bg-ui-bg-component",
 			)}
 		>
-			<div
-				className={cn(
-					"pointer-events-none absolute inset-0 rounded-xl transition-opacity duration-400",
-					flash === "up" && "bg-emerald-500/10",
-					flash === "down" && "bg-red-500/10",
-					flash ? "opacity-100" : "opacity-0",
-				)}
-			/>
-
-			<div className="relative flex min-w-0 items-center gap-1.5 sm:gap-3">
-				<div
+			<div className="flex min-w-0 items-center gap-1 p-2 sm:gap-2 sm:p-3">
+				{/* favorite star button */}
+				<button
+					aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
 					className={cn(
-						"flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm sm:h-10 sm:w-10 sm:text-xl",
-						"bg-zinc-700/50 transition-transform duration-200 group-hover:scale-105",
+						"relative z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-all",
+						"hover:bg-ui-bg-hover",
+						isFavorite ? "text-amber-400" : "text-ui-fg-disabled hover:text-ui-fg-muted",
 					)}
+					onClick={(e) => {
+						e.stopPropagation()
+						onToggleFavorite()
+					}}
+					type="button"
 				>
-					{token.icon}
-				</div>
-				<div className="min-w-0">
-					<div className="truncate font-bold text-[13px] text-white sm:text-[15px]">
-						{token.symbol}
+					<svg
+						className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+						fill={isFavorite ? "currentColor" : "none"}
+						stroke="currentColor"
+						strokeWidth={2}
+						viewBox="0 0 24 24"
+					>
+						<path
+							d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+						/>
+					</svg>
+				</button>
+
+				{/* main row content - clickable to expand */}
+				<button
+					className="flex min-w-0 flex-1 items-center justify-between gap-1.5 text-left sm:gap-2"
+					onClick={() => setExpanded(!expanded)}
+					type="button"
+				>
+					<div
+						className={cn(
+							"pointer-events-none absolute inset-0 rounded-xl transition-opacity duration-[400ms]",
+							flash === "up" && "bg-emerald-500/10",
+							flash === "down" && "bg-red-500/10",
+							flash ? "opacity-100" : "opacity-0",
+						)}
+					/>
+
+					<div className="relative flex min-w-0 items-center gap-1.5 sm:gap-3">
+						<div
+							className={cn(
+								"flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm sm:h-10 sm:w-10 sm:text-xl",
+								"bg-ui-bg-hover transition-transform duration-200 group-hover:scale-105",
+							)}
+						>
+							{token.icon}
+						</div>
+						<div className="min-w-0">
+							<div className="truncate font-bold text-[13px] text-foreground sm:text-[15px]">
+								{token.symbol}
+							</div>
+							<div className="hidden truncate text-[12px] text-ui-fg-muted sm:block sm:text-[13px]">
+								{token.name}
+							</div>
+						</div>
 					</div>
-					<div className="hidden truncate text-[12px] text-zinc-500 sm:block sm:text-[13px]">
-						{token.name}
+
+					{/* sparkline - hidden on mobile for space */}
+					<div className="mx-2 hidden sm:block">
+						{ticker ? (
+							<Sparkline className="opacity-80" data={sparklineData} height={28} width={50} />
+						) : (
+							<div className="h-7 w-[50px] animate-pulse rounded bg-ui-bg-hover/50" />
+						)}
 					</div>
-				</div>
+
+					<div className="relative shrink-0 text-right">
+						{ticker ? (
+							<>
+								<div
+									className={cn(
+										"font-mono text-[14px] tabular-nums transition-colors duration-150 sm:text-lg",
+										flash === "up" && "text-emerald-400",
+										flash === "down" && "text-red-400",
+										!flash && "text-foreground",
+									)}
+								>
+									${formatPrice(ticker.price)}
+								</div>
+								<div
+									className={cn(
+										"flex items-center justify-end gap-0.5 font-mono text-[10px] tabular-nums sm:gap-1 sm:text-[13px]",
+										isPositive ? "text-emerald-400" : "text-red-400",
+									)}
+								>
+									{isPositive ? (
+										<svg className="h-2 w-2 sm:h-3 sm:w-3" fill="currentColor" viewBox="0 0 20 20">
+											<path
+												clipRule="evenodd"
+												d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+												fillRule="evenodd"
+											/>
+										</svg>
+									) : (
+										<svg className="h-2 w-2 sm:h-3 sm:w-3" fill="currentColor" viewBox="0 0 20 20">
+											<path
+												clipRule="evenodd"
+												d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"
+												fillRule="evenodd"
+											/>
+										</svg>
+									)}
+									{formatPercent(ticker.priceChangePercent)}
+								</div>
+							</>
+						) : (
+							<div className="flex flex-col items-end gap-1">
+								<div className="h-4 w-16 animate-pulse rounded bg-ui-bg-hover sm:h-6 sm:w-24" />
+								<div className="h-3 w-10 animate-pulse rounded bg-ui-bg-hover/50 sm:h-4 sm:w-14" />
+							</div>
+						)}
+					</div>
+				</button>
 			</div>
 
-			<div className="relative shrink-0 text-right">
-				{ticker ? (
-					<>
-						<div
-							className={cn(
-								"font-mono text-[14px] tabular-nums transition-colors duration-150 sm:text-lg",
-								flash === "up" && "text-emerald-400",
-								flash === "down" && "text-red-400",
-								!flash && "text-white",
-							)}
-						>
-							${formatPrice(ticker.price)}
+			{/* expanded 24h stats */}
+			{expanded && ticker && (
+				<div className="grid grid-cols-3 gap-2 border-ui-border-subtle border-t px-2 py-2 sm:px-3 sm:py-3">
+					<div className="text-center">
+						<div className="text-[9px] text-ui-fg-muted uppercase sm:text-[10px]">24h High</div>
+						<div className="font-mono text-[11px] text-emerald-400 tabular-nums sm:text-[13px]">
+							${formatCompactPrice(ticker.high24h)}
 						</div>
-						<div
-							className={cn(
-								"flex items-center justify-end gap-0.5 font-mono text-[10px] tabular-nums sm:gap-1 sm:text-[13px]",
-								isPositive ? "text-emerald-400" : "text-red-400",
-							)}
-						>
-							{isPositive ? (
-								<svg className="h-2 w-2 sm:h-3 sm:w-3" fill="currentColor" viewBox="0 0 20 20">
-									<path
-										clipRule="evenodd"
-										d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
-										fillRule="evenodd"
-									/>
-								</svg>
-							) : (
-								<svg className="h-2 w-2 sm:h-3 sm:w-3" fill="currentColor" viewBox="0 0 20 20">
-									<path
-										clipRule="evenodd"
-										d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"
-										fillRule="evenodd"
-									/>
-								</svg>
-							)}
-							{formatPercent(ticker.priceChangePercent)}
-						</div>
-					</>
-				) : (
-					<div className="flex flex-col items-end gap-1">
-						<div className="h-4 w-16 animate-pulse rounded bg-zinc-700/50 sm:h-6 sm:w-24" />
-						<div className="h-3 w-10 animate-pulse rounded bg-zinc-700/30 sm:h-4 sm:w-14" />
 					</div>
-				)}
-			</div>
+					<div className="text-center">
+						<div className="text-[9px] text-ui-fg-muted uppercase sm:text-[10px]">24h Low</div>
+						<div className="font-mono text-[11px] text-red-400 tabular-nums sm:text-[13px]">
+							${formatCompactPrice(ticker.low24h)}
+						</div>
+					</div>
+					<div className="text-center">
+						<div className="text-[9px] text-ui-fg-muted uppercase sm:text-[10px]">24h Vol</div>
+						<div className="font-mono text-[11px] text-ui-fg-subtle tabular-nums sm:text-[13px]">
+							{formatVolume(ticker.quoteVolume24h)}
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	)
 })
 
 export function TokenPrices() {
-	const { tickers, status } = useBinanceTicker()
+	const { reconnect, reconnectAttempts, status, tickers, timeSinceLastMessage } = useBinanceTicker()
+	const { isFavorite, toggleFavorite } = useFavoriteTokens()
+
+	/* sort tokens: favorites first, then alphabetically */
+	const sortedTokens = useMemo(() => {
+		return [...SUPPORTED_TOKENS].sort((a, b) => {
+			const aFav = isFavorite(a.symbol)
+			const bFav = isFavorite(b.symbol)
+			if (aFav && !bFav) return -1
+			if (!aFav && bFav) return 1
+			return 0
+		})
+	}, [isFavorite])
 
 	return (
-		<div className="flex flex-col overflow-hidden rounded-xl border border-zinc-800/80 bg-zinc-900/80 backdrop-blur-sm">
-			<div className="flex items-center justify-between border-zinc-800/50 border-b px-2 py-2 sm:px-4 sm:py-3">
-				<h2 className="font-bold text-[13px] text-white sm:text-[15px]">Live Prices</h2>
-				<div className="flex items-center gap-1">
-					<div
-						className={cn(
-							"h-1.5 w-1.5 rounded-full transition-colors duration-300",
-							status === "connected" && "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.5)]",
-							status === "connecting" && "animate-pulse bg-amber-400",
-							status === "disconnected" && "bg-red-400",
-						)}
-					/>
-					<span className="text-[8px] text-zinc-500 uppercase tracking-wide sm:text-[10px]">
-						{status === "connected" ? "Live" : status}
-					</span>
-				</div>
+		<div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card backdrop-blur-sm">
+			<div className="flex items-center justify-between border-border border-b px-2 py-2 sm:px-4 sm:py-3">
+				<h2 className="font-bold text-[13px] text-foreground sm:text-[15px]">Live Prices</h2>
+				<ConnectionStatus
+					compact
+					onReconnect={reconnect}
+					reconnectAttempts={reconnectAttempts}
+					state={status}
+					timeSinceLastMessage={timeSinceLastMessage}
+				/>
 			</div>
 
 			<div className="flex flex-col gap-1 p-1.5 sm:gap-2 sm:p-3">
-				{SUPPORTED_TOKENS.map((token) => (
-					<TokenRow key={token.symbol} ticker={tickers[token.symbol]} token={token} />
+				{sortedTokens.map((token) => (
+					<TokenRow
+						isFavorite={isFavorite(token.symbol)}
+						key={token.symbol}
+						onToggleFavorite={() => toggleFavorite(token.symbol)}
+						ticker={tickers[token.symbol]}
+						token={token}
+					/>
 				))}
+			</div>
+
+			{/* hint */}
+			<div className="flex items-center justify-center border-border border-t py-1 sm:py-1.5">
+				<span className="text-[8px] text-ui-fg-disabled sm:text-[9px]">
+					Click token for 24h stats
+				</span>
 			</div>
 		</div>
 	)
