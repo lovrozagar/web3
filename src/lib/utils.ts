@@ -28,6 +28,34 @@ export function formatQuantity(qty: string | number): string {
 	return num.toFixed(4)
 }
 
+export function formatVolume(volume: string | number): string {
+	const num = typeof volume === "string" ? Number.parseFloat(volume) : volume
+	if (num >= 1000000000) {
+		return `$${(num / 1000000000).toFixed(2)}B`
+	}
+	if (num >= 1000000) {
+		return `$${(num / 1000000).toFixed(2)}M`
+	}
+	if (num >= 1000) {
+		return `$${(num / 1000).toFixed(1)}K`
+	}
+	return `$${num.toFixed(0)}`
+}
+
+export function formatCompactPrice(price: string | number): string {
+	const num = typeof price === "string" ? Number.parseFloat(price) : price
+	if (num >= 10000) {
+		return num.toLocaleString("en-US", { maximumFractionDigits: 0 })
+	}
+	if (num >= 1000) {
+		return num.toLocaleString("en-US", { maximumFractionDigits: 1 })
+	}
+	if (num >= 1) {
+		return num.toFixed(2)
+	}
+	return num.toFixed(4)
+}
+
 export function getPriceDirection(current: string, previous: string): PriceDirection {
 	const curr = Number.parseFloat(current)
 	const prev = Number.parseFloat(previous)
