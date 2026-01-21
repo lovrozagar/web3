@@ -1,22 +1,139 @@
 @import "tailwindcss";
 
+/** Root variables - Dark theme (default) */
 :root {
-	--background: #0a0b0d;
-	--foreground: #ffffff;
-	--green: #10b981;
-	--red: #ef4444;
-	--accent: #3b82f6;
+	--timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+
+	--ring-width: 2px;
+	--ring-offset: 0px;
+	--ring-color: rgba(59, 130, 246, 0.5);
+
+	--primary: rgba(59, 130, 246, 1);
+	--primary-foreground: rgba(255, 255, 255, 1);
+
+	--destructive: rgba(239, 68, 68, 1);
+	--destructive-foreground: rgba(255, 255, 255, 1);
+
+	--success: rgba(16, 185, 129, 1);
+	--success-foreground: rgba(255, 255, 255, 1);
+
+	/** UI Colors - Dark theme */
+	--ui-bg-base: rgba(10, 11, 13, 1);
+	--ui-bg-subtle: rgba(24, 24, 27, 1);
+	--ui-bg-component: rgba(39, 39, 42, 1);
+	--ui-bg-hover: rgba(63, 63, 70, 1);
+	--ui-bg-field: rgba(39, 39, 42, 0.6);
+	--ui-border-base: rgba(63, 63, 70, 1);
+	--ui-border-subtle: rgba(39, 39, 42, 0.8);
+	--ui-fg-base: rgba(250, 250, 250, 1);
+	--ui-fg-subtle: rgba(161, 161, 170, 1);
+	--ui-fg-muted: rgba(113, 113, 122, 1);
+	--ui-fg-disabled: rgba(82, 82, 91, 1);
+
+	--background: rgba(10, 11, 13, 1);
+	--foreground: rgba(255, 255, 255, 1);
+
+	--card: rgba(24, 24, 27, 0.8);
+	--card-foreground: rgba(250, 250, 250, 1);
+
+	--popover: rgba(39, 39, 42, 1);
+	--popover-foreground: rgba(250, 250, 250, 1);
+
+	--border: rgba(39, 39, 42, 0.8);
+
+	--accent: rgba(39, 39, 42, 1);
+	--accent-foreground: rgba(250, 250, 250, 1);
+
+	--muted: rgba(39, 39, 42, 1);
+	--muted-foreground: rgba(161, 161, 170, 1);
 }
 
+/** Light mode selector */
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
+
+/** Light theme variables */
+[data-theme="light"] {
+	/** UI Colors - Light theme */
+	--ui-bg-base: rgba(248, 250, 252, 1);
+	--ui-bg-subtle: rgba(255, 255, 255, 1);
+	--ui-bg-component: rgba(241, 245, 249, 1);
+	--ui-bg-hover: rgba(226, 232, 240, 1);
+	--ui-bg-field: rgba(241, 245, 249, 1);
+	--ui-border-base: rgba(203, 213, 225, 1);
+	--ui-border-subtle: rgba(226, 232, 240, 1);
+	--ui-fg-base: rgba(15, 23, 42, 1);
+	--ui-fg-subtle: rgba(71, 85, 105, 1);
+	--ui-fg-muted: rgba(100, 116, 139, 1);
+	--ui-fg-disabled: rgba(148, 163, 184, 1);
+
+	--background: rgba(248, 250, 252, 1);
+	--foreground: rgba(15, 23, 42, 1);
+
+	--card: rgba(255, 255, 255, 0.9);
+	--card-foreground: rgba(15, 23, 42, 1);
+
+	--popover: rgba(255, 255, 255, 1);
+	--popover-foreground: rgba(15, 23, 42, 1);
+
+	--border: rgba(203, 213, 225, 0.8);
+
+	--accent: rgba(241, 245, 249, 1);
+	--accent-foreground: rgba(15, 23, 42, 1);
+
+	--muted: rgba(241, 245, 249, 1);
+	--muted-foreground: rgba(100, 116, 139, 1);
+}
+
+/** Tailwind theme mapping */
 @theme inline {
+	--default-ring-width: var(--ring-width);
+	--default-ring-offset-width: var(--ring-offset);
+	--default-ring-color: var(--ring-color);
+
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-success: var(--success);
+	--color-success-foreground: var(--success-foreground);
+
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
+
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+
+	--color-border: var(--border);
+
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+
+	--color-ui-bg-base: var(--ui-bg-base);
+	--color-ui-bg-subtle: var(--ui-bg-subtle);
+	--color-ui-bg-component: var(--ui-bg-component);
+	--color-ui-bg-hover: var(--ui-bg-hover);
+	--color-ui-bg-field: var(--ui-bg-field);
+	--color-ui-border-base: var(--ui-border-base);
+	--color-ui-border-subtle: var(--ui-border-subtle);
+	--color-ui-fg-base: var(--ui-fg-base);
+	--color-ui-fg-subtle: var(--ui-fg-subtle);
+	--color-ui-fg-muted: var(--ui-fg-muted);
+	--color-ui-fg-disabled: var(--ui-fg-disabled);
+
 	--font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 }
 
-* {
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
+@layer base {
+	a,
+	button {
+		@apply outline-none transition-shadow duration-150 focus-visible:ring;
+	}
 }
 
 html {
@@ -26,62 +143,31 @@ html {
 body {
 	background: var(--background);
 	color: var(--foreground);
-	font-family: SFRounded, ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+	font-family: SFRounded, ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
 	font-weight: 600;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
-button, a, input, select {
-	transition: background-color 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out, transform 0.15s ease-out;
-}
-
-.tabular-nums {
-	font-variant-numeric: tabular-nums;
-}
 
 ::selection {
-	background: rgba(59, 130, 246, 0.3);
-	color: #fff;
+	background: var(--primary);
+	color: var(--primary-foreground);
 }
 
-::-webkit-scrollbar {
-	width: 6px;
-	height: 6px;
+/** Keyframes - needed for animations referenced by Tailwind arbitrary values */
+@keyframes gradient-shift {
+	0%, 100% { background-position: 0% 50%; }
+	50% { background-position: 100% 50%; }
 }
 
-::-webkit-scrollbar-track {
-	background: transparent;
+@keyframes live-pulse {
+	0%, 100% { opacity: 1; transform: scale(1); }
+	50% { opacity: 0.5; transform: scale(1.2); }
 }
 
-::-webkit-scrollbar-thumb {
-	background: #27272a;
-	border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-	background: #3f3f46;
-}
-
-.duration-400 {
-	transition-duration: 400ms;
-}
-
-.glow-green {
-	box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
-}
-
-.glow-red {
-	box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
-}
-
-.glow-blue {
-	box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
-}
-
-*:focus {
-	outline: none;
-}
-
-*:focus-visible {
-	outline: 2px solid rgba(96, 165, 250, 0.7);
-	outline-offset: 2px;
+@keyframes number-pop {
+	0% { transform: scale(1); }
+	50% { transform: scale(1.05); }
+	100% { transform: scale(1); }
 }
