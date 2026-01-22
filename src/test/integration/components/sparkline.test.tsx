@@ -1,6 +1,7 @@
 import { render } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
-import { generateSparklineData, Sparkline } from "@/components/sparkline"
+import { Sparkline } from "@/components/sparkline"
+import { generateSparklineData } from "@/utils/sparkline"
 
 describe("Sparkline", () => {
 	const sampleData = [100, 105, 103, 110, 108, 115, 112, 120]

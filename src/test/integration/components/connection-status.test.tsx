@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
-import { ConnectionStatus, StatusDot } from "@/components/connection-status"
+import { ConnectionStatus } from "@/components/connection-status"
+import { StatusDot } from "@/components/status-dot"
 
 describe("ConnectionStatus", () => {
 	describe("connected state", () => {

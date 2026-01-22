@@ -2,10 +2,6 @@ import { act, fireEvent, render, screen } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
 vi.mock("wagmi", () => ({
-	useAccount: () => ({
-		address: "0x1234567890123456789012345678901234567890",
-		isConnected: true,
-	}),
 	useBalance: () => ({
 		data: {
 			decimals: 18,
@@ -14,6 +10,10 @@ vi.mock("wagmi", () => ({
 		},
 	}),
 	useChainId: () => 1,
+	useConnection: () => ({
+		address: "0x1234567890123456789012345678901234567890",
+		isConnected: true,
+	}),
 }))
 
 vi.mock("@rainbow-me/rainbowkit", () => ({
@@ -58,12 +58,12 @@ vi.mock("sonner", () => ({
 	},
 }))
 
-vi.mock("@/lib/constants", () => ({
+vi.mock("@/utils/explorer", () => ({
 	getExplorerTxUrl: () => "https://etherscan.io/tx/0x123",
 }))
 
 import { SwapInterface } from "@/components/swap-interface"
-import { formatPercent, formatPrice, formatQuantity } from "@/lib/utils"
+import { formatPercent, formatPrice, formatQuantity } from "@/utils/format"
 
 describe("Security: Input Validation", () => {
 	describe("Swap Amount Input Sanitization", () => {
@@ -291,7 +291,7 @@ describe("Security: URL Validation", () => {
 		it("generates safe explorer URLs", async () => {
 			const { getExplorerTxUrl } = await vi.importActual<{
 				getExplorerTxUrl: (chainId: number, hash: string) => string
-			}>("@/lib/constants")
+			}>("@/utils/explorer")
 
 			// Test with valid hash
 			const url = getExplorerTxUrl(1, "0x1234567890abcdef")

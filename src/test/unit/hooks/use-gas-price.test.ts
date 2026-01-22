@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { estimateTransactionCost, formatGwei, getGasLevel } from "@/hooks/use-gas-price"
+import { estimateTransactionCost, formatGwei, getGasLevel } from "@/utils/gas"
 
 describe("gas price utilities", () => {
 	describe("formatGwei", () => {

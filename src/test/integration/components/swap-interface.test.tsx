@@ -37,9 +37,9 @@ const mockAddTransaction = vi.fn()
 const mockUpdateTransaction = vi.fn()
 
 vi.mock("wagmi", () => ({
-	useAccount: () => mockAccount,
 	useBalance: () => mockBalance,
 	useChainId: () => 1,
+	useConnection: () => mockAccount,
 }))
 
 vi.mock("@rainbow-me/rainbowkit", () => ({
@@ -82,7 +82,7 @@ vi.mock("sonner", () => ({
 	},
 }))
 
-vi.mock("@/lib/constants", () => ({
+vi.mock("@/utils/explorer", () => ({
 	getExplorerTxUrl: (_chainId: number, hash: string) => `https://etherscan.io/tx/${hash}`,
 }))
 

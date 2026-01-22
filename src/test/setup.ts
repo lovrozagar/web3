@@ -3,6 +3,10 @@ import { cleanup } from "@testing-library/react"
 import { afterEach, beforeEach, vi } from "vitest"
 import { MockWebSocket } from "./mocks/websocket"
 
+/* set environment variables for tests */
+process.env.NEXT_PUBLIC_GITHUB_REPO_URL = "https://github.com/test/web3"
+process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID = "test-project-id"
+
 /* setup mockwebsocket globally for all tests */
 MockWebSocket.setup()
 

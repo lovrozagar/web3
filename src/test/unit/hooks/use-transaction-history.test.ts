@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { formatRelativeTime, useTransactionHistory } from "@/hooks/use-transaction-history"
+import { useTransactionHistory } from "@/hooks/use-transaction-history"
+import { formatRelativeTime } from "@/utils/format"
 
 describe("useTransactionHistory", () => {
 	beforeEach(() => {

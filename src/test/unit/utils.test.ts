@@ -1,15 +1,14 @@
 import { describe, expect, it } from "vitest"
+import { cn } from "@/utils/cn"
 import {
-	calculateSpread,
-	cn,
 	formatCompactPrice,
 	formatPercent,
 	formatPrice,
 	formatQuantity,
 	formatVolume,
-	getPriceDirection,
 	truncateAddress,
-} from "@/lib/utils"
+} from "@/utils/format"
+import { calculateSpread, getPriceDirection } from "@/utils/price"
 
 describe("formatPrice", () => {
 	describe("standard formatting", () => {
