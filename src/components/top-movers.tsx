@@ -1,7 +1,9 @@
 "use client"
 
 import { useMemo } from "react"
-import { useBinanceTicker } from "@/hooks/use-binance-ticker"
+import { TimePeriodToggle } from "@/components/time-period-toggle"
+import { useTimePeriod } from "@/hooks/use-time-period"
+import type { TickerData } from "@/types"
 import { SUPPORTED_TOKENS } from "@/types"
 import { cn } from "@/utils/cn"
 import { formatPercent, formatPrice } from "@/utils/format"
@@ -88,8 +90,12 @@ function LoadingSkeleton() {
 	)
 }
 
-export function TopMovers() {
-	const { tickers } = useBinanceTicker()
+interface TopMoversProps {
+	tickers: Record<string, TickerData>
+}
+
+export function TopMovers({ tickers }: TopMoversProps) {
+	const { period, setPeriod, getPriceChange } = useTimePeriod()
 
 	const { gainers, losers } = useMemo(() => {
 		const tokenMap = new Map(SUPPORTED_TOKENS.map((t) => [t.symbol, t]))
@@ -98,9 +104,10 @@ export function TopMovers() {
 			.filter(([symbol]) => tokenMap.has(symbol))
 			.map(([symbol, ticker]) => {
 				const token = tokenMap.get(symbol)
+				const changePercent = getPriceChange(symbol, ticker) ?? ticker.priceChangePercent
 				return {
-					changeNum: Number.parseFloat(ticker.priceChangePercent),
-					changePercent: ticker.priceChangePercent,
+					changeNum: Number.parseFloat(changePercent),
+					changePercent,
 					icon: token?.icon ?? "🪙",
 					name: token?.name ?? symbol,
 					price: ticker.price,
@@ -118,7 +125,7 @@ export function TopMovers() {
 			gainers: top3,
 			losers: bottom3,
 		}
-	}, [tickers])
+	}, [tickers, getPriceChange])
 
 	const hasData = gainers.length > 0 || losers.length > 0
 
@@ -126,7 +133,7 @@ export function TopMovers() {
 		<div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card backdrop-blur-sm">
 			<div className="flex items-center justify-between border-border border-b px-2 py-2 sm:px-4 sm:py-3">
 				<h2 className="font-bold text-[13px] text-foreground sm:text-[15px]">Top Movers</h2>
-				<span className="text-[9px] text-ui-fg-muted sm:text-[10px]">24h</span>
+				<TimePeriodToggle onChange={setPeriod} value={period} />
 			</div>
 
 			<div className="flex flex-col gap-3 p-2 sm:gap-4 sm:p-3">

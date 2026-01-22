@@ -1,11 +1,13 @@
 "use client"
 
 import { memo, useEffect, useMemo, useRef, useState } from "react"
+import type { WebSocketState } from "@/classes/websocket-manager"
 import { ArrowDownIcon } from "@/components/icons/arrow-down"
 import { ArrowUpIcon } from "@/components/icons/arrow-up"
 import { StarIcon } from "@/components/icons/star"
-import { useBinanceTicker } from "@/hooks/use-binance-ticker"
+import { TimePeriodToggle } from "@/components/time-period-toggle"
 import { useFavoriteTokens } from "@/hooks/use-favorite-tokens"
+import { useTimePeriod } from "@/hooks/use-time-period"
 import type { TickerData, TokenInfo } from "@/types"
 import { SUPPORTED_TOKENS } from "@/types"
 import { cn } from "@/utils/cn"
@@ -19,6 +21,7 @@ interface TokenRowProps {
 	token: TokenInfo
 	isFavorite: boolean
 	onToggleFavorite: () => void
+	priceChangePercent: string | null
 }
 
 const TokenRow = memo(function TokenRow({
@@ -26,20 +29,21 @@ const TokenRow = memo(function TokenRow({
 	token,
 	isFavorite,
 	onToggleFavorite,
+	priceChangePercent,
 }: TokenRowProps) {
 	const [flash, setFlash] = useState<"up" | "down" | null>(null)
 	const [expanded, setExpanded] = useState(false)
 	const prevPriceRef = useRef<string | null>(null)
 
-	const isPositive = ticker && Number.parseFloat(ticker.priceChangePercent) >= 0
+	const isPositive = priceChangePercent ? Number.parseFloat(priceChangePercent) >= 0 : true
 
 	/* generate sparkline data based on current price and change */
 	const sparklineData = useMemo(() => {
-		if (!ticker) return []
+		if (!ticker || !priceChangePercent) return []
 		const price = Number.parseFloat(ticker.price)
-		const change = Number.parseFloat(ticker.priceChangePercent)
+		const change = Number.parseFloat(priceChangePercent)
 		return generateSparklineData(price, change)
-	}, [ticker])
+	}, [ticker, priceChangePercent])
 
 	/* detect price changes and trigger flash */
 	useEffect(() => {
@@ -151,7 +155,7 @@ const TokenRow = memo(function TokenRow({
 									) : (
 										<ArrowDownIcon className="h-2 w-2 sm:h-3 sm:w-3" />
 									)}
-									{formatPercent(ticker.priceChangePercent)}
+									{priceChangePercent ? formatPercent(priceChangePercent) : "--"}
 								</div>
 							</>
 						) : (
@@ -191,9 +195,23 @@ const TokenRow = memo(function TokenRow({
 	)
 })
 
-export function TokenPrices() {
-	const { reconnect, reconnectAttempts, status, tickers, timeSinceLastMessage } = useBinanceTicker()
+interface TokenPricesProps {
+	tickers: Record<string, TickerData>
+	status: WebSocketState
+	reconnect: () => void
+	reconnectAttempts: number
+	timeSinceLastMessage: number
+}
+
+export function TokenPrices({
+	tickers,
+	status,
+	reconnect,
+	reconnectAttempts,
+	timeSinceLastMessage,
+}: TokenPricesProps) {
 	const { isFavorite, toggleFavorite } = useFavoriteTokens()
+	const { period, setPeriod, getPriceChange } = useTimePeriod()
 
 	/* sort tokens: favorites first, then alphabetically */
 	const sortedTokens = useMemo(() => {
@@ -209,7 +227,10 @@ export function TokenPrices() {
 	return (
 		<div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card backdrop-blur-sm">
 			<div className="flex items-center justify-between border-border border-b px-2 py-2 sm:px-4 sm:py-3">
-				<h2 className="font-bold text-[13px] text-foreground sm:text-[15px]">Live Prices</h2>
+				<div className="flex items-center gap-2">
+					<h2 className="font-bold text-[13px] text-foreground sm:text-[15px]">Live Prices</h2>
+					<TimePeriodToggle onChange={setPeriod} value={period} />
+				</div>
 				<ConnectionStatus
 					compact
 					onReconnect={reconnect}
@@ -225,6 +246,7 @@ export function TokenPrices() {
 						isFavorite={isFavorite(token.symbol)}
 						key={token.symbol}
 						onToggleFavorite={() => toggleFavorite(token.symbol)}
+						priceChangePercent={getPriceChange(token.symbol, tickers[token.symbol])}
 						ticker={tickers[token.symbol]}
 						token={token}
 					/>
