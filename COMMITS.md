@@ -1,5 +1,10 @@
 # Commits
 
+86. 2026-01-22 `49bf4d3` 🟢 feat: add order book pair selector and fix price click to fill swap
+85. 2026-01-22 `dda1990` 🔵 refactor: update hero section with dynamic status pill
+84. 2026-01-22 `f271ec0` 🟢 feat: add time period toggle with historical price data
+83. 2026-01-22 `4deba43` 🟢 feat: add tech stack logo components and favicon
+82. 2026-01-22 `7d4d824` 🟡 chore: update COMMITS.md [skip ci]
 81. 2026-01-22 `b5ac8c4` ⚪ ci: add test job to workflow
 80. 2026-01-22 `33fb883` 🧪 test: update imports and add env vars to test setup
 79. 2026-01-22 `04c1070` 🎨 style: remove spacing between css vars
