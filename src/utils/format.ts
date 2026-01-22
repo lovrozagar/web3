@@ -1,5 +1,3 @@
-import type { PriceDirection } from "@/types"
-
 export function formatPrice(price: string | number, decimals = 2): string {
 	const num = typeof price === "string" ? Number.parseFloat(price) : price
 	if (num >= 1000) {
@@ -56,32 +54,15 @@ export function formatCompactPrice(price: string | number): string {
 	return num.toFixed(4)
 }
 
-export function getPriceDirection(current: string, previous: string): PriceDirection {
-	const curr = Number.parseFloat(current)
-	const prev = Number.parseFloat(previous)
-	if (curr > prev) return "up"
-	if (curr < prev) return "down"
-	return "neutral"
-}
-
 export function truncateAddress(address: string, chars = 4): string {
 	return `${address.slice(0, chars + 2)}...${address.slice(-chars)}`
 }
 
-export function calculateSpread(
-	bestBid: string,
-	bestAsk: string,
-): { spread: string; percent: string } {
-	const bid = Number.parseFloat(bestBid)
-	const ask = Number.parseFloat(bestAsk)
-	const spread = ask - bid
-	const percent = (spread / ask) * 100
-	return {
-		percent: percent.toFixed(3),
-		spread: spread.toFixed(2),
-	}
-}
+export function formatRelativeTime(timestamp: number): string {
+	const seconds = Math.floor((Date.now() - timestamp) / 1000)
 
-export function cn(...classes: (string | boolean | undefined | null)[]): string {
-	return classes.filter(Boolean).join(" ")
+	if (seconds < 60) return "just now"
+	if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
+	if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
+	return `${Math.floor(seconds / 86400)}d ago`
 }

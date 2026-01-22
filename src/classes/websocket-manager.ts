@@ -4,7 +4,6 @@
  * - heartbeat detection (detects stale connections)
  * - tab visibility handling (pause when hidden, resume when visible)
  * - connection state machine
- * - message queuing during reconnection
  */
 
 export type WebSocketState =
@@ -20,17 +19,11 @@ export interface WebSocketManagerOptions {
 	onMessage: (data: unknown) => void
 	onStateChange?: (state: WebSocketState) => void
 	onError?: (error: Event) => void
-	/* maximum reconnection attempts before giving up (default: 10) */
 	maxReconnectAttempts?: number
-	/* base delay for reconnection in ms (default: 1000) */
 	baseReconnectDelay?: number
-	/* maximum delay for reconnection in ms (default: 30000) */
 	maxReconnectDelay?: number
-	/* heartbeat timeout - if no message received in this time, consider connection dead (default: 60000) */
 	heartbeatTimeout?: number
-	/* whether to pause websocket when tab is hidden (default: true) */
 	pauseWhenHidden?: boolean
-	/* whether to automatically connect on creation (default: true) */
 	autoConnect?: boolean
 }
 
@@ -121,7 +114,6 @@ export class WebSocketManager {
 				const data = JSON.parse(event.data)
 				this.options.onMessage(data)
 			} catch {
-				/* log parse error but don't crash */
 				console.warn("[WebSocket] Failed to parse message:", event.data)
 			}
 		}
@@ -129,7 +121,6 @@ export class WebSocketManager {
 		this.ws.onclose = (event: CloseEvent) => {
 			this.stopHeartbeatCheck()
 
-			/* clean close (code 1000) or intentional disconnect */
 			if (event.code === 1000 || this.isDestroyed) {
 				this.setState("disconnected")
 				return
@@ -140,7 +131,6 @@ export class WebSocketManager {
 
 		this.ws.onerror = (event: Event) => {
 			this.options.onError(event)
-			/* onclose will be called after onerror */
 		}
 	}
 
@@ -169,15 +159,10 @@ export class WebSocketManager {
 		}, delay)
 	}
 
-	/*
-	 * exponential backoff with jitter
-	 * formula: min(maxDelay, baseDelay * 2^attempt) * (0.5 + random * 0.5)
-	 * the jitter prevents thundering herd when server recovers
-	 */
+	/* exponential backoff with jitter to prevent thundering herd */
 	private calculateReconnectDelay(): number {
 		const exponentialDelay = this.options.baseReconnectDelay * 2 ** this.reconnectAttempts
 		const cappedDelay = Math.min(exponentialDelay, this.options.maxReconnectDelay)
-		/* add jitter: 50-100% of the delay */
 		const jitter = 0.5 + Math.random() * 0.5
 		return Math.floor(cappedDelay * jitter)
 	}
@@ -204,7 +189,6 @@ export class WebSocketManager {
 
 	private handleHeartbeatTimeout(): void {
 		console.warn("[WebSocket] Heartbeat timeout - connection appears dead")
-		/* force close and reconnect */
 		this.ws?.close(4000, "Heartbeat timeout")
 	}
 
@@ -212,13 +196,11 @@ export class WebSocketManager {
 		if (this.isDestroyed) return
 
 		if (document.hidden) {
-			/* tab is hidden - pause connection */
 			this.wasConnectedBeforeHidden = this.state === "connected" || this.state === "connecting"
 			if (this.wasConnectedBeforeHidden) {
 				this.disconnect()
 			}
 		} else {
-			/* tab is visible - resume if was connected */
 			if (this.wasConnectedBeforeHidden) {
 				this.connect()
 			}
@@ -234,7 +216,7 @@ export class WebSocketManager {
 		}
 
 		if (this.ws) {
-			this.ws.onclose = null /* prevent reconnection logic */
+			this.ws.onclose = null
 			this.ws.close(1000, "Client disconnect")
 			this.ws = null
 		}
@@ -242,10 +224,6 @@ export class WebSocketManager {
 		this.setState("disconnected")
 	}
 
-	/*
-	 * manual reconnect - resets attempt counter
-	 * use this for "reconnect" button in ui
-	 */
 	reconnect(): void {
 		this.reconnectAttempts = 0
 		this.disconnect()
@@ -259,96 +237,5 @@ export class WebSocketManager {
 		if (this.options.pauseWhenHidden && typeof document !== "undefined") {
 			document.removeEventListener("visibilitychange", this.handleVisibilityChange)
 		}
-	}
-}
-
-/*
- * react hook for websocket connection
- */
-import { useCallback, useEffect, useRef, useState } from "react"
-
-export interface UseWebSocketOptions<T> {
-	url: string
-	onMessage: (data: T) => void
-	enabled?: boolean
-	pauseWhenHidden?: boolean
-}
-
-export interface UseWebSocketReturn {
-	disconnect: () => void
-	reconnect: () => void
-	reconnectAttempts: number
-	state: WebSocketState
-	timeSinceLastMessage: number
-}
-
-export function useWebSocket<T>({
-	url,
-	onMessage,
-	enabled = true,
-	pauseWhenHidden = true,
-}: UseWebSocketOptions<T>): UseWebSocketReturn {
-	const [state, setState] = useState<WebSocketState>("idle")
-	const [reconnectAttempts, setReconnectAttempts] = useState(0)
-	const [timeSinceLastMessage, setTimeSinceLastMessage] = useState(0)
-	const managerRef = useRef<WebSocketManager | null>(null)
-	const onMessageRef = useRef(onMessage)
-
-	/* keep onmessage ref updated */
-	onMessageRef.current = onMessage
-
-	useEffect(() => {
-		if (!enabled) {
-			managerRef.current?.destroy()
-			managerRef.current = null
-			setState("idle")
-			return
-		}
-
-		const manager = new WebSocketManager({
-			autoConnect: false /* don't auto-connect, we'll do it after assigning ref */,
-			onMessage: (data) => onMessageRef.current(data as T),
-			onStateChange: (newState) => {
-				setState(newState)
-				/* use managerref instead of manager to avoid closure issue */
-				if (managerRef.current) {
-					setReconnectAttempts(managerRef.current.getReconnectAttempts())
-				}
-			},
-			pauseWhenHidden,
-			url,
-		})
-
-		managerRef.current = manager
-		manager.connect() /* connect after ref is assigned */
-
-		/* update time since last message periodically */
-		const interval = setInterval(() => {
-			if (managerRef.current) {
-				setTimeSinceLastMessage(managerRef.current.getTimeSinceLastMessage())
-			}
-		}, 1000)
-
-		return () => {
-			clearInterval(interval)
-			manager.destroy()
-			managerRef.current = null
-		}
-	}, [url, enabled, pauseWhenHidden])
-
-	const reconnect = useCallback(() => {
-		managerRef.current?.reconnect()
-	}, [])
-
-	const disconnect = useCallback(() => {
-		managerRef.current?.disconnect()
-	}, [])
-
-	return {
-		disconnect,
-		reconnect,
-		reconnectAttempts,
-		state,
-		timeSinceLastMessage,
 	}
 }
