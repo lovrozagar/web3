@@ -1,17 +1,28 @@
 "use client"
 
-import { memo, useMemo, useState } from "react"
+import { memo, useEffect, useMemo, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import { type UpdateSpeed, useBinanceDepth } from "@/hooks/use-binance-depth"
 import { type OrderBookDepth, useUserPreferences } from "@/hooks/use-user-preferences"
-import type { OrderBookEntry } from "@/types"
+import { type OrderBookEntry, SUPPORTED_TOKENS } from "@/types"
 import { cn } from "@/utils/cn"
 import { formatPrice, formatQuantity } from "@/utils/format"
 import { ConnectionStatus } from "./connection-status"
+import { ChevronDownIcon } from "./icons/chevron-down"
 
 const DEPTH_OPTIONS: { label: string; value: OrderBookDepth }[] = [
 	{ label: "10", value: 10 },
 	{ label: "20", value: 20 },
 ]
+
+/* trading pairs for order book */
+const ORDER_BOOK_PAIRS = SUPPORTED_TOKENS.map((token) => ({
+	baseSymbol: token.symbol,
+	icon: token.icon,
+	label: `${token.symbol}/USDT`,
+	name: token.name,
+	pair: `${token.symbol.toLowerCase()}usdt`,
+}))
 
 type PriceGrouping = 0.01 | 0.1 | 1 | 10
 
@@ -60,13 +71,20 @@ function groupOrders(
 }
 
 interface OrderRowProps {
+	baseSymbol: string
 	entry: OrderBookEntry
 	maxQuantity: number
 	onPriceClick?: (price: string) => void
 	type: "bid" | "ask"
 }
 
-const OrderRow = memo(function OrderRow({ entry, maxQuantity, onPriceClick, type }: OrderRowProps) {
+const OrderRow = memo(function OrderRow({
+	baseSymbol,
+	entry,
+	maxQuantity,
+	onPriceClick,
+	type,
+}: OrderRowProps) {
 	const quantity = Number.parseFloat(entry.quantity)
 	const depthPercent = (quantity / maxQuantity) * 100
 	const isBid = type === "bid"
@@ -74,7 +92,7 @@ const OrderRow = memo(function OrderRow({ entry, maxQuantity, onPriceClick, type
 
 	return (
 		<button
-			aria-label={`${orderType} order at $${entry.price} for ${entry.quantity} ETH. Click to fill swap form.`}
+			aria-label={`${orderType} order at $${entry.price} for ${entry.quantity} ${baseSymbol}. Click to fill swap form.`}
 			className="group relative flex h-5 w-full items-center justify-between px-2 font-mono text-[11px] hover:bg-ui-bg-hover/50 sm:h-7 sm:text-[13px]"
 			onClick={() => onPriceClick?.(entry.price)}
 			type="button"
@@ -117,8 +135,78 @@ function SkeletonRow({ type }: { type: "bid" | "ask" }) {
 	)
 }
 
+interface PairSelectorProps {
+	buttonRef: React.RefObject<HTMLButtonElement | null>
+	isOpen: boolean
+	onClose: () => void
+	onSelect: (pair: string) => void
+	selectedPair: string
+}
+
+function PairSelector({ buttonRef, isOpen, onClose, onSelect, selectedPair }: PairSelectorProps) {
+	const [position, setPosition] = useState<{ left: number; top: number } | null>(null)
+	const dropdownRef = useRef<HTMLDivElement>(null)
+
+	/* update position when open state changes */
+	useEffect(() => {
+		if (isOpen && buttonRef.current) {
+			const rect = buttonRef.current.getBoundingClientRect()
+			setPosition({
+				left: rect.left,
+				top: rect.bottom + 4,
+			})
+		} else {
+			setPosition(null)
+		}
+	}, [isOpen, buttonRef])
+
+	/* close on outside click */
+	useEffect(() => {
+		if (!isOpen) return
+		function handleClickOutside(event: MouseEvent) {
+			const target = event.target as Node
+			/* ignore clicks on toggle button or inside dropdown */
+			if (buttonRef.current?.contains(target)) return
+			if (dropdownRef.current?.contains(target)) return
+			onClose()
+		}
+		document.addEventListener("mousedown", handleClickOutside)
+		return () => document.removeEventListener("mousedown", handleClickOutside)
+	}, [isOpen, onClose, buttonRef])
+
+	if (!isOpen || !position) return null
+
+	return createPortal(
+		<div
+			className="fixed z-50 max-h-64 w-44 overflow-y-auto rounded-lg border border-border bg-popover shadow-lg"
+			ref={dropdownRef}
+			style={{ left: position.left, top: position.top }}
+		>
+			{ORDER_BOOK_PAIRS.map((pairInfo) => (
+				<button
+					className={cn(
+						"flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-ui-bg-hover",
+						pairInfo.pair === selectedPair && "bg-ui-bg-hover/50",
+					)}
+					key={pairInfo.pair}
+					onClick={() => onSelect(pairInfo.pair)}
+					type="button"
+				>
+					<span className="text-sm">{pairInfo.icon}</span>
+					<div>
+						<div className="font-semibold text-foreground text-xs">{pairInfo.label}</div>
+						<div className="text-[10px] text-ui-fg-muted">{pairInfo.name}</div>
+					</div>
+				</button>
+			))}
+		</div>,
+		document.body,
+	)
+}
+
 interface OrderBookProps {
-	onPriceSelect?: (price: string, type: "bid" | "ask") => void
+	onPairChange?: (pair: string, baseSymbol: string) => void
+	onPriceSelect?: (price: string, type: "bid" | "ask", baseSymbol: string) => void
 }
 
 /* map user preference speed to websocket speed */
@@ -127,15 +215,30 @@ function getWsSpeed(speed: number): UpdateSpeed {
 	return "1000ms"
 }
 
-export function OrderBook({ onPriceSelect }: OrderBookProps) {
+export function OrderBook({ onPairChange, onPriceSelect }: OrderBookProps) {
 	const { preferences, setOrderBookDepth } = useUserPreferences()
 	const [grouping, setGrouping] = useState<PriceGrouping>(0.01)
+	const [selectedPair, setSelectedPair] = useState("ethusdt")
+	const [isPairSelectorOpen, setIsPairSelectorOpen] = useState(false)
+	const pairButtonRef = useRef<HTMLButtonElement>(null)
+
+	const selectedPairInfo =
+		ORDER_BOOK_PAIRS.find((p) => p.pair === selectedPair) ?? ORDER_BOOK_PAIRS[1]
 
 	const wsSpeed = getWsSpeed(preferences.orderBookUpdateSpeed)
 	const { orderBook, reconnect, reconnectAttempts, status, timeSinceLastMessage } = useBinanceDepth(
-		"ethusdt",
+		selectedPair,
 		wsSpeed,
 	)
+
+	const handlePairSelect = (pair: string) => {
+		setSelectedPair(pair)
+		setIsPairSelectorOpen(false)
+		const pairInfo = ORDER_BOOK_PAIRS.find((p) => p.pair === pair)
+		if (pairInfo && onPairChange) {
+			onPairChange(pair, pairInfo.baseSymbol)
+		}
+	}
 
 	/* how many levels to display (half on each side) */
 	const displayLevels = Math.floor(preferences.orderBookDepth / 2)
@@ -161,7 +264,7 @@ export function OrderBook({ onPriceSelect }: OrderBookProps) {
 	const midPrice = orderBook.bids[0]?.price ?? "0"
 
 	const handlePriceClick = (price: string, type: "bid" | "ask") => {
-		onPriceSelect?.(price, type)
+		onPriceSelect?.(price, type, selectedPairInfo.baseSymbol)
 	}
 
 	return (
@@ -170,9 +273,32 @@ export function OrderBook({ onPriceSelect }: OrderBookProps) {
 			<div className="flex items-center justify-between border-border border-b px-2 py-2 sm:px-4 sm:py-3">
 				<div className="flex items-center gap-2">
 					<h2 className="font-bold text-[13px] text-foreground sm:text-[15px]">Order Book</h2>
-					<span className="rounded bg-ui-bg-component px-1.5 py-0.5 font-mono text-[9px] text-ui-fg-muted sm:text-[10px]">
-						ETH/USDT
-					</span>
+					<button
+						className={cn(
+							"flex cursor-pointer items-center gap-1 rounded px-1.5 py-0.5 transition-colors",
+							"bg-ui-bg-component hover:bg-ui-bg-hover",
+						)}
+						onClick={() => setIsPairSelectorOpen(!isPairSelectorOpen)}
+						ref={pairButtonRef}
+						type="button"
+					>
+						<span className="font-mono text-[9px] text-ui-fg-muted sm:text-[10px]">
+							{selectedPairInfo.label}
+						</span>
+						<ChevronDownIcon
+							className={cn(
+								"h-2.5 w-2.5 text-ui-fg-muted transition-transform",
+								isPairSelectorOpen && "rotate-180",
+							)}
+						/>
+					</button>
+					<PairSelector
+						buttonRef={pairButtonRef}
+						isOpen={isPairSelectorOpen}
+						onClose={() => setIsPairSelectorOpen(false)}
+						onSelect={handlePairSelect}
+						selectedPair={selectedPair}
+					/>
 				</div>
 				<ConnectionStatus
 					compact
@@ -230,7 +356,7 @@ export function OrderBook({ onPriceSelect }: OrderBookProps) {
 			{/* column headers */}
 			<div className="flex items-center justify-between px-2 py-1 text-[9px] text-ui-fg-muted uppercase tracking-wider sm:px-4 sm:py-2 sm:text-[11px]">
 				<span>Price (USDT)</span>
-				<span>Amount (ETH)</span>
+				<span>Amount ({selectedPairInfo.baseSymbol})</span>
 			</div>
 
 			{/* asks - reversed so lowest ask is at bottom, index-keyed for smooth transitions */}
@@ -241,6 +367,7 @@ export function OrderBook({ onPriceSelect }: OrderBookProps) {
 							.reverse()
 							.map((entry, index) => (
 								<OrderRow
+									baseSymbol={selectedPairInfo.baseSymbol}
 									entry={entry}
 									key={`ask-${index}`}
 									maxQuantity={maxAskQuantity}
@@ -303,6 +430,7 @@ export function OrderBook({ onPriceSelect }: OrderBookProps) {
 							.slice(0, displayLevels)
 							.map((entry, index) => (
 								<OrderRow
+									baseSymbol={selectedPairInfo.baseSymbol}
 									entry={entry}
 									key={`bid-${index}`}
 									maxQuantity={maxBidQuantity}

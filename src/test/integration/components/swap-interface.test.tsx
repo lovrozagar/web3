@@ -402,12 +402,31 @@ describe("SwapInterface", () => {
 	})
 
 	describe("initial price prop", () => {
-		it("pre-fills amount when initialPrice is provided", () => {
-			render(<SwapInterface initialPrice="2.5" />)
+		it("pre-fills amount when initialPrice and priceTimestamp are provided", () => {
+			/* both initialPrice and priceTimestamp are required to fill the form */
+			render(<SwapInterface initialPrice="2.5" priceTimestamp={Date.now()} />)
 
 			const inputs = screen.getAllByPlaceholderText("0.0")
 			const fromInput = inputs[0]
 			expect(fromInput).toHaveValue("2.5")
+		})
+
+		it("also sets from token when initialFromToken is provided", () => {
+			render(
+				<SwapInterface initialFromToken="BTC" initialPrice="0.001" priceTimestamp={Date.now()} />,
+			)
+
+			/* should show BTC as the from token */
+			expect(screen.getByText("BTC")).toBeInTheDocument()
+		})
+
+		it("does not fill form when priceTimestamp is missing", () => {
+			render(<SwapInterface initialPrice="2.5" />)
+
+			const inputs = screen.getAllByPlaceholderText("0.0")
+			const fromInput = inputs[0]
+			/* without timestamp, the form should not be filled */
+			expect(fromInput).toHaveValue("")
 		})
 	})
 

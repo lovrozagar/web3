@@ -97,11 +97,19 @@ function TokenDropdown({
 }
 
 interface SwapInterfaceProps {
+	/* pre-fill the from token from order book selection */
+	initialFromToken?: string
 	/* pre-fill the from amount from order book click */
 	initialPrice?: string
+	/* timestamp to force re-render even with same values */
+	priceTimestamp?: number
 }
 
-export function SwapInterface({ initialPrice }: SwapInterfaceProps) {
+export function SwapInterface({
+	initialFromToken,
+	initialPrice,
+	priceTimestamp,
+}: SwapInterfaceProps) {
 	const { address, isConnected } = useConnection()
 	const chainId = useChainId()
 	const { openConnectModal } = useConnectModal()
@@ -139,12 +147,17 @@ export function SwapInterface({ initialPrice }: SwapInterfaceProps) {
 		return value
 	}, [balanceData])
 
-	/* apply initial price from order book click */
+	/* apply initial price and token from order book click */
 	useEffect(() => {
-		if (initialPrice) {
+		if (initialPrice && priceTimestamp) {
 			setFromAmount(initialPrice)
+			/* also set the from token if provided (order book is always X/USDT) */
+			if (initialFromToken && initialFromToken !== "USDT") {
+				setFromToken(initialFromToken)
+				setToToken("USDT")
+			}
 		}
-	}, [initialPrice])
+	}, [initialPrice, priceTimestamp, initialFromToken])
 
 	const handleAmountChange = useCallback((value: string) => {
 		if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {

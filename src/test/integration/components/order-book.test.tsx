@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react"
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mockOrderBook = {
@@ -225,7 +225,8 @@ describe("OrderBook", () => {
 			})
 
 			expect(onPriceSelect).toHaveBeenCalled()
-			expect(onPriceSelect).toHaveBeenCalledWith(expect.any(String), "bid")
+			/* callback now includes baseSymbol as third parameter */
+			expect(onPriceSelect).toHaveBeenCalledWith(expect.any(String), "bid", expect.any(String))
 		})
 
 		it("calls onPriceSelect when ask is clicked", () => {
@@ -239,7 +240,8 @@ describe("OrderBook", () => {
 			})
 
 			expect(onPriceSelect).toHaveBeenCalled()
-			expect(onPriceSelect).toHaveBeenCalledWith(expect.any(String), "ask")
+			/* callback now includes baseSymbol as third parameter */
+			expect(onPriceSelect).toHaveBeenCalledWith(expect.any(String), "ask", expect.any(String))
 		})
 
 		it("order rows have descriptive aria-labels", () => {
@@ -317,6 +319,149 @@ describe("OrderBook", () => {
 
 			// Reset to original mock
 			vi.doUnmock("@/hooks/use-binance-depth")
+		})
+	})
+
+	describe("trading pair selector", () => {
+		it("displays ETH/USDT as default pair", () => {
+			render(<OrderBook />)
+
+			/* default pair should be ETH/USDT */
+			expect(screen.getByText("ETH/USDT")).toBeInTheDocument()
+		})
+
+		it("shows pair selector button with chevron", () => {
+			render(<OrderBook />)
+
+			const pairButton = screen.getByText("ETH/USDT").closest("button")
+			expect(pairButton).toBeInTheDocument()
+		})
+
+		it("calls onPairChange when a new pair is selected", async () => {
+			const onPairChange = vi.fn()
+			render(<OrderBook onPairChange={onPairChange} />)
+
+			/* click the pair selector button */
+			const pairButton = screen.getByText("ETH/USDT").closest("button")
+			if (pairButton) {
+				act(() => {
+					fireEvent.click(pairButton)
+				})
+			}
+
+			/* wait for dropdown to appear and click BTC option */
+			await waitFor(() => {
+				expect(screen.getByText("BTC/USDT")).toBeInTheDocument()
+			})
+
+			act(() => {
+				fireEvent.click(screen.getByText("BTC/USDT"))
+			})
+
+			expect(onPairChange).toHaveBeenCalledWith("btcusdt", "BTC")
+		})
+
+		it("passes correct baseSymbol to onPriceSelect", () => {
+			const onPriceSelect = vi.fn()
+			render(<OrderBook onPriceSelect={onPriceSelect} />)
+
+			const bidButton = screen.getAllByRole("button", { name: /buy order/ })[0]
+			act(() => {
+				fireEvent.click(bidButton)
+			})
+
+			/* should pass ETH as default baseSymbol */
+			expect(onPriceSelect).toHaveBeenCalledWith(expect.any(String), "bid", "ETH")
+		})
+
+		it("updates column header when pair changes", () => {
+			render(<OrderBook />)
+
+			/* initially shows ETH in column header */
+			expect(screen.getByText("Amount (ETH)")).toBeInTheDocument()
+		})
+
+		it("closes dropdown when clicking outside", async () => {
+			render(<OrderBook />)
+
+			/* open the dropdown */
+			const pairButton = screen.getByText("ETH/USDT").closest("button")
+			if (pairButton) {
+				act(() => {
+					fireEvent.click(pairButton)
+				})
+			}
+
+			/* wait for dropdown to appear */
+			await waitFor(() => {
+				expect(screen.getByText("BTC/USDT")).toBeInTheDocument()
+			})
+
+			/* click outside (on the document body) */
+			act(() => {
+				fireEvent.mouseDown(document.body)
+			})
+
+			/* dropdown should close */
+			await waitFor(() => {
+				expect(screen.queryByText("Bitcoin")).not.toBeInTheDocument()
+			})
+		})
+
+		it("updates displayed pair label after selection", async () => {
+			render(<OrderBook />)
+
+			/* initially shows ETH/USDT */
+			expect(screen.getByText("ETH/USDT")).toBeInTheDocument()
+
+			/* open dropdown and select BTC */
+			const pairButton = screen.getByText("ETH/USDT").closest("button")
+			if (pairButton) {
+				act(() => {
+					fireEvent.click(pairButton)
+				})
+			}
+
+			await waitFor(() => {
+				expect(screen.getByText("BTC/USDT")).toBeInTheDocument()
+			})
+
+			act(() => {
+				fireEvent.click(screen.getByText("BTC/USDT"))
+			})
+
+			/* should now show BTC/USDT as the selected pair */
+			await waitFor(() => {
+				const buttons = screen.getAllByRole("button")
+				const pairBtn = buttons.find((btn) => btn.textContent?.includes("BTC/USDT"))
+				expect(pairBtn).toBeInTheDocument()
+			})
+		})
+
+		it("keeps dropdown open when clicking inside it", async () => {
+			render(<OrderBook />)
+
+			/* open the dropdown */
+			const pairButton = screen.getByText("ETH/USDT").closest("button")
+			if (pairButton) {
+				act(() => {
+					fireEvent.click(pairButton)
+				})
+			}
+
+			/* wait for dropdown to appear */
+			await waitFor(() => {
+				expect(screen.getByText("SOL/USDT")).toBeInTheDocument()
+			})
+
+			/* mousedown inside dropdown (but not on a button) should keep it open */
+			const solOption = screen.getByText("Solana")
+			act(() => {
+				fireEvent.mouseDown(solOption)
+			})
+
+			/* dropdown should still be visible */
+			expect(screen.getByText("BTC/USDT")).toBeInTheDocument()
 		})
 	})
 })
