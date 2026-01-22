@@ -4,13 +4,18 @@ import { useConnectModal } from "@rainbow-me/rainbowkit"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { toast } from "sonner"
-import { useAccount, useBalance, useChainId } from "wagmi"
+import { useBalance, useChainId, useConnection } from "wagmi"
+import { ChevronDownIcon } from "@/components/icons/chevron-down"
+import { SpinnerIcon } from "@/components/icons/spinner"
+import { SwapVerticalIcon } from "@/components/icons/swap"
+import { WalletIcon } from "@/components/icons/wallet"
 import { useBinanceTicker } from "@/hooks/use-binance-ticker"
 import { useTransactionHistory } from "@/hooks/use-transaction-history"
 import { useUserPreferences } from "@/hooks/use-user-preferences"
-import { getExplorerTxUrl } from "@/lib/constants"
-import { cn, formatPrice } from "@/lib/utils"
 import { SUPPORTED_TOKENS } from "@/types"
+import { cn } from "@/utils/cn"
+import { getExplorerTxUrl } from "@/utils/explorer"
+import { formatPrice } from "@/utils/format"
 
 const SLIPPAGE_OPTIONS = [0.1, 0.5, 1.0, 2.0, 3.0]
 
@@ -97,7 +102,7 @@ interface SwapInterfaceProps {
 }
 
 export function SwapInterface({ initialPrice }: SwapInterfaceProps) {
-	const { address, isConnected } = useAccount()
+	const { address, isConnected } = useConnection()
 	const chainId = useChainId()
 	const { openConnectModal } = useConnectModal()
 	const { tickers } = useBinanceTicker()
@@ -388,22 +393,12 @@ export function SwapInterface({ initialPrice }: SwapInterfaceProps) {
 						>
 							<span className="text-sm sm:text-lg">{fromTokenData?.icon}</span>
 							<span className="font-bold text-[12px] sm:text-[15px]">{fromToken}</span>
-							<svg
+							<ChevronDownIcon
 								className={cn(
 									"h-2.5 w-2.5 text-ui-fg-muted transition-transform sm:h-4 sm:w-4",
 									openSelector === "from" && "rotate-180",
 								)}
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									d="M19 9l-7 7-7-7"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2}
-								/>
-							</svg>
+							/>
 						</button>
 						<TokenDropdown
 							buttonRef={fromButtonRef}
@@ -430,19 +425,7 @@ export function SwapInterface({ initialPrice }: SwapInterfaceProps) {
 						onClick={handleSwapTokens}
 						type="button"
 					>
-						<svg
-							className="h-3 w-3 text-ui-fg-subtle sm:h-4 sm:w-4"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth={2}
-							/>
-						</svg>
+						<SwapVerticalIcon className="h-3 w-3 text-ui-fg-subtle sm:h-4 sm:w-4" />
 					</button>
 				</div>
 
@@ -476,22 +459,12 @@ export function SwapInterface({ initialPrice }: SwapInterfaceProps) {
 						>
 							<span className="text-sm sm:text-lg">{toTokenData?.icon}</span>
 							<span className="font-bold text-[12px] sm:text-[15px]">{toToken}</span>
-							<svg
+							<ChevronDownIcon
 								className={cn(
 									"h-2.5 w-2.5 text-ui-fg-muted transition-transform sm:h-4 sm:w-4",
 									openSelector === "to" && "rotate-180",
 								)}
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									d="M19 9l-7 7-7-7"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2}
-								/>
-							</svg>
+							/>
 						</button>
 						<TokenDropdown
 							buttonRef={toButtonRef}
@@ -551,43 +524,9 @@ export function SwapInterface({ initialPrice }: SwapInterfaceProps) {
 					type="button"
 				>
 					{(swapState === "confirming" || swapState === "pending") && (
-						<svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-							<circle
-								className="opacity-25"
-								cx="12"
-								cy="12"
-								r="10"
-								stroke="currentColor"
-								strokeWidth="4"
-							/>
-							<path
-								className="opacity-75"
-								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-								fill="currentColor"
-							/>
-						</svg>
+						<SpinnerIcon className="h-4 w-4 animate-spin" />
 					)}
-					{!isConnected && swapState === "idle" && (
-						<svg
-							className="h-4 w-4"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth={2}
-							viewBox="0 0 24 24"
-						>
-							<rect
-								height="14"
-								rx="2"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								width="20"
-								x="2"
-								y="6"
-							/>
-							<path d="M16 12h.01" strokeLinecap="round" strokeLinejoin="round" />
-							<path d="M2 10h20" strokeLinecap="round" strokeLinejoin="round" />
-						</svg>
-					)}
+					{!isConnected && swapState === "idle" && <WalletIcon className="h-4 w-4" />}
 					{getButtonText()}
 				</button>
 			</div>

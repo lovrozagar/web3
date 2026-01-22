@@ -1,10 +1,11 @@
 "use client"
 
 import { useCallback, useRef, useState } from "react"
-import { BINANCE_WS_BASE, DEFAULT_DEPTH_PAIR, DEPTH_LEVELS } from "@/lib/constants"
-import { calculateSpread } from "@/lib/utils"
-import { useWebSocket, type WebSocketState } from "@/lib/websocket-manager"
+import type { WebSocketState } from "@/classes/websocket-manager"
+import { BINANCE_WS_BASE, DEFAULT_DEPTH_PAIR, DEPTH_LEVELS } from "@/constants/binance"
+import { useWebSocket } from "@/hooks/use-websocket"
 import type { OrderBookData, OrderBookEntry } from "@/types"
+import { calculateSpread } from "@/utils/price"
 
 interface BinanceDepthMessage {
 	asks: [string, string][]

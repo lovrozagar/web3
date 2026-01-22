@@ -3,8 +3,9 @@
 import { memo, useMemo, useState } from "react"
 import { type UpdateSpeed, useBinanceDepth } from "@/hooks/use-binance-depth"
 import { type OrderBookDepth, useUserPreferences } from "@/hooks/use-user-preferences"
-import { cn, formatPrice, formatQuantity } from "@/lib/utils"
 import type { OrderBookEntry } from "@/types"
+import { cn } from "@/utils/cn"
+import { formatPrice, formatQuantity } from "@/utils/format"
 import { ConnectionStatus } from "./connection-status"
 
 const DEPTH_OPTIONS: { label: string; value: OrderBookDepth }[] = [

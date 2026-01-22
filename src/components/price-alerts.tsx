@@ -1,10 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { BellIcon } from "@/components/icons/bell"
+import { CloseIcon } from "@/components/icons/close"
+import { PlusIcon } from "@/components/icons/plus"
 import { useBinanceTicker } from "@/hooks/use-binance-ticker"
 import { type PriceAlert, usePriceAlerts } from "@/hooks/use-price-alerts"
-import { cn, formatPrice } from "@/lib/utils"
 import { SUPPORTED_TOKENS } from "@/types"
+import { cn } from "@/utils/cn"
+import { formatPrice } from "@/utils/format"
 
 export function PriceAlerts() {
 	const { alerts, addAlert, removeAlert, clearTriggered, checkAlerts } = usePriceAlerts()
@@ -43,19 +47,7 @@ export function PriceAlerts() {
 		<div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card backdrop-blur-sm">
 			<div className="flex items-center justify-between border-border border-b px-3 py-2 sm:px-4 sm:py-3">
 				<div className="flex items-center gap-2">
-					<svg
-						className="h-4 w-4 text-amber-400"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth={2}
-						viewBox="0 0 24 24"
-					>
-						<path
-							d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-						/>
-					</svg>
+					<BellIcon className="h-4 w-4 text-amber-400" />
 					<h2 className="font-bold text-[13px] text-foreground sm:text-[15px]">Price Alerts</h2>
 				</div>
 				<button
@@ -63,15 +55,7 @@ export function PriceAlerts() {
 					onClick={() => setIsAdding(!isAdding)}
 					type="button"
 				>
-					<svg
-						className={cn("h-4 w-4 transition-transform", isAdding && "rotate-45")}
-						fill="none"
-						stroke="currentColor"
-						strokeWidth={2}
-						viewBox="0 0 24 24"
-					>
-						<path d="M12 4v16m8-8H4" strokeLinecap="round" strokeLinejoin="round" />
-					</svg>
+					<PlusIcon className={cn("h-4 w-4 transition-transform", isAdding && "rotate-45")} />
 				</button>
 			</div>
 
@@ -256,15 +240,7 @@ function AlertRow({ alert, currentPrice, onRemove }: AlertRowProps) {
 				onClick={() => onRemove(alert.id)}
 				type="button"
 			>
-				<svg
-					className="h-3.5 w-3.5"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth={2}
-					viewBox="0 0 24 24"
-				>
-					<path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
-				</svg>
+				<CloseIcon className="h-3.5 w-3.5" />
 			</button>
 		</div>
 	)

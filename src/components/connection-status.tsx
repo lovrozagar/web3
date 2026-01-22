@@ -1,7 +1,8 @@
 "use client"
 
-import { cn } from "@/lib/utils"
-import type { WebSocketState } from "@/lib/websocket-manager"
+import type { WebSocketState } from "@/classes/websocket-manager"
+import { CONNECTION_STATUS_CONFIG } from "@/constants/ui"
+import { cn } from "@/utils/cn"
 
 interface ConnectionStatusProps {
 	state: WebSocketState
@@ -10,48 +11,6 @@ interface ConnectionStatusProps {
 	onReconnect?: () => void
 	showLastUpdate?: boolean
 	compact?: boolean
-}
-
-const STATUS_CONFIG: Record<
-	WebSocketState,
-	{
-		color: string
-		label: string
-		pulse: boolean
-		glow?: boolean
-	}
-> = {
-	connected: {
-		color: "bg-green-500",
-		glow: true,
-		label: "Live",
-		pulse: false,
-	},
-	connecting: {
-		color: "bg-amber-500",
-		label: "Connecting",
-		pulse: true,
-	},
-	disconnected: {
-		color: "bg-zinc-500",
-		label: "Disconnected",
-		pulse: false,
-	},
-	failed: {
-		color: "bg-red-500",
-		label: "Connection failed",
-		pulse: false,
-	},
-	idle: {
-		color: "bg-zinc-600",
-		label: "Idle",
-		pulse: false,
-	},
-	reconnecting: {
-		color: "bg-amber-500",
-		label: "Reconnecting",
-		pulse: true,
-	},
 }
 
 function formatTimeSince(ms: number): string {
@@ -71,7 +30,7 @@ export function ConnectionStatus({
 	showLastUpdate = false,
 	compact = false,
 }: ConnectionStatusProps) {
-	const config = STATUS_CONFIG[state]
+	const config = CONNECTION_STATUS_CONFIG[state]
 	const isStale = timeSinceLastMessage > 30000 && state === "connected"
 
 	if (compact) {
@@ -149,30 +108,6 @@ export function ConnectionStatus({
 				>
 					Reconnect
 				</button>
-			)}
-		</output>
-	)
-}
-
-/** Compact status indicator for headers */
-export function StatusDot({ state, className }: { state: WebSocketState; className?: string }) {
-	const config = STATUS_CONFIG[state]
-
-	return (
-		<output
-			aria-label={`Connection: ${config.label}`}
-			className={cn("relative", className)}
-			title={config.label}
-		>
-			<div aria-hidden="true" className={cn("h-2 w-2 rounded-full", config.color)} />
-			{config.pulse && (
-				<div
-					aria-hidden="true"
-					className={cn(
-						"absolute inset-0 h-2 w-2 animate-ping rounded-full opacity-75",
-						config.color,
-					)}
-				/>
 			)}
 		</output>
 	)

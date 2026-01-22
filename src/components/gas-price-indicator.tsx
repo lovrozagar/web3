@@ -1,9 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useAccount } from "wagmi"
-import { formatGwei, getGasLevel, useGasPriceData } from "@/hooks/use-gas-price"
-import { cn } from "@/lib/utils"
+import { useConnection } from "wagmi"
+import { GasIcon } from "@/components/icons/gas"
+import { useGasPriceData } from "@/hooks/use-gas-price"
+import { cn } from "@/utils/cn"
+import { formatGwei, getGasLevel } from "@/utils/gas"
 import { WalletNotConnected } from "./wallet-not-connected"
 
 interface GasPriceIndicatorProps {
@@ -11,7 +13,7 @@ interface GasPriceIndicatorProps {
 }
 
 export function GasPriceIndicator({ compact = false }: GasPriceIndicatorProps) {
-	const { isConnected } = useAccount()
+	const { isConnected } = useConnection()
 	const { data, isLoading, refetch } = useGasPriceData()
 	const [timeSinceUpdate, setTimeSinceUpdate] = useState(0)
 
@@ -33,24 +35,7 @@ export function GasPriceIndicator({ compact = false }: GasPriceIndicatorProps) {
 		return (
 			<div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card backdrop-blur-sm">
 				<div className="flex items-center gap-2 border-border border-b px-3 py-2 sm:px-4 sm:py-3">
-					<svg
-						className="h-4 w-4 text-emerald-400"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth={1.5}
-						viewBox="0 0 24 24"
-					>
-						<path
-							d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-						/>
-						<path
-							d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-						/>
-					</svg>
+					<GasIcon className="h-4 w-4 text-emerald-400" />
 					<span className="font-bold text-[13px] text-foreground sm:text-[15px]">Gas Price</span>
 				</div>
 				<WalletNotConnected message="Connect to view gas prices" />
@@ -110,24 +95,7 @@ export function GasPriceIndicator({ compact = false }: GasPriceIndicatorProps) {
 		<div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-3 backdrop-blur-sm">
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-2">
-					<svg
-						className="h-4 w-4 text-emerald-400"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth={1.5}
-						viewBox="0 0 24 24"
-					>
-						<path
-							d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-						/>
-						<path
-							d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-						/>
-					</svg>
+					<GasIcon className="h-4 w-4 text-emerald-400" />
 					<span className="font-medium text-foreground text-sm">Gas Price</span>
 				</div>
 				<div className="flex items-center gap-1.5">

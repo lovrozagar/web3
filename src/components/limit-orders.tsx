@@ -1,15 +1,20 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useAccount } from "wagmi"
+import { useConnection } from "wagmi"
+import { ArrowRightIcon } from "@/components/icons/arrow-right"
+import { ClipboardIcon } from "@/components/icons/clipboard"
+import { CloseIcon } from "@/components/icons/close"
+import { PlusIcon } from "@/components/icons/plus"
 import { useBinanceTicker } from "@/hooks/use-binance-ticker"
 import { type LimitOrder, type OrderSide, useLimitOrders } from "@/hooks/use-limit-orders"
-import { cn, formatPrice } from "@/lib/utils"
 import { SUPPORTED_TOKENS } from "@/types"
+import { cn } from "@/utils/cn"
+import { formatPrice } from "@/utils/format"
 import { WalletNotConnected } from "./wallet-not-connected"
 
 export function LimitOrders() {
-	const { isConnected } = useAccount()
+	const { isConnected } = useConnection()
 	const { orders, createOrder, cancelOrder, clearFilled, checkOrders } = useLimitOrders()
 	const { tickers } = useBinanceTicker()
 	const [isCreating, setIsCreating] = useState(false)
@@ -63,19 +68,7 @@ export function LimitOrders() {
 		return (
 			<div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card backdrop-blur-sm">
 				<div className="flex items-center gap-2 border-border border-b px-3 py-2 sm:px-4 sm:py-3">
-					<svg
-						className="h-4 w-4 text-purple-400"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth={2}
-						viewBox="0 0 24 24"
-					>
-						<path
-							d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-						/>
-					</svg>
+					<ClipboardIcon className="h-4 w-4 text-purple-400" />
 					<h2 className="font-bold text-[13px] text-foreground sm:text-[15px]">Limit Orders</h2>
 				</div>
 				<WalletNotConnected message="Connect to place limit orders" />
@@ -87,19 +80,7 @@ export function LimitOrders() {
 		<div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card backdrop-blur-sm">
 			<div className="flex items-center justify-between border-border border-b px-3 py-2 sm:px-4 sm:py-3">
 				<div className="flex items-center gap-2">
-					<svg
-						className="h-4 w-4 text-purple-400"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth={2}
-						viewBox="0 0 24 24"
-					>
-						<path
-							d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-						/>
-					</svg>
+					<ClipboardIcon className="h-4 w-4 text-purple-400" />
 					<h2 className="font-bold text-[13px] text-foreground sm:text-[15px]">Limit Orders</h2>
 					{openOrders.length > 0 && (
 						<span className="rounded-full bg-purple-500/20 px-1.5 py-0.5 font-medium text-[10px] text-purple-400">
@@ -112,15 +93,7 @@ export function LimitOrders() {
 					onClick={() => setIsCreating(!isCreating)}
 					type="button"
 				>
-					<svg
-						className={cn("h-4 w-4 transition-transform", isCreating && "rotate-45")}
-						fill="none"
-						stroke="currentColor"
-						strokeWidth={2}
-						viewBox="0 0 24 24"
-					>
-						<path d="M12 4v16m8-8H4" strokeLinecap="round" strokeLinejoin="round" />
-					</svg>
+					<PlusIcon className={cn("h-4 w-4 transition-transform", isCreating && "rotate-45")} />
 				</button>
 			</div>
 
@@ -169,19 +142,7 @@ export function LimitOrders() {
 							))}
 							<option value="USDT">USDT</option>
 						</select>
-						<svg
-							className="h-4 w-4 text-ui-fg-muted"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								d="M14 5l7 7m0 0l-7 7m7-7H3"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth={2}
-							/>
-						</svg>
+						<ArrowRightIcon className="h-4 w-4 text-ui-fg-muted" />
 						<select
 							className="flex-1 rounded-lg border border-border bg-ui-bg-component px-2 py-1.5 text-foreground text-sm focus:border-blue-500 focus:outline-none"
 							onChange={(e) => setTokenTo(e.target.value)}
@@ -345,19 +306,7 @@ function OrderRow({ order, currentPrice, onCancel }: OrderRowProps) {
 					<span className="text-foreground text-sm">
 						{order.amount} {order.tokenFrom}
 					</span>
-					<svg
-						className="h-3 w-3 text-ui-fg-muted"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							d="M14 5l7 7m0 0l-7 7m7-7H3"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth={2}
-						/>
-					</svg>
+					<ArrowRightIcon className="h-3 w-3 text-ui-fg-muted" />
 					<span className="text-sm text-ui-fg-subtle">{order.tokenTo}</span>
 				</div>
 
@@ -391,15 +340,7 @@ function OrderRow({ order, currentPrice, onCancel }: OrderRowProps) {
 					onClick={() => onCancel(order.id)}
 					type="button"
 				>
-					<svg
-						className="h-3.5 w-3.5"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth={2}
-						viewBox="0 0 24 24"
-					>
-						<path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
-					</svg>
+					<CloseIcon className="h-3.5 w-3.5" />
 				</button>
 			)}
 		</div>

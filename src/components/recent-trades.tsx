@@ -2,7 +2,8 @@
 
 import { memo } from "react"
 import { type TradeData, useBinanceTrades } from "@/hooks/use-binance-trades"
-import { cn, formatPrice } from "@/lib/utils"
+import { cn } from "@/utils/cn"
+import { formatPrice } from "@/utils/format"
 import { ConnectionStatus } from "./connection-status"
 
 interface TradeRowProps {

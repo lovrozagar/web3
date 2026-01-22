@@ -1,13 +1,18 @@
 "use client"
 
 import { memo, useEffect, useMemo, useRef, useState } from "react"
+import { ArrowDownIcon } from "@/components/icons/arrow-down"
+import { ArrowUpIcon } from "@/components/icons/arrow-up"
+import { StarIcon } from "@/components/icons/star"
 import { useBinanceTicker } from "@/hooks/use-binance-ticker"
 import { useFavoriteTokens } from "@/hooks/use-favorite-tokens"
-import { cn, formatCompactPrice, formatPercent, formatPrice, formatVolume } from "@/lib/utils"
 import type { TickerData, TokenInfo } from "@/types"
 import { SUPPORTED_TOKENS } from "@/types"
+import { cn } from "@/utils/cn"
+import { formatCompactPrice, formatPercent, formatPrice, formatVolume } from "@/utils/format"
+import { generateSparklineData } from "@/utils/sparkline"
 import { ConnectionStatus } from "./connection-status"
-import { generateSparklineData, Sparkline } from "./sparkline"
+import { Sparkline } from "./sparkline"
 
 interface TokenRowProps {
 	ticker: TickerData | undefined
@@ -73,19 +78,10 @@ const TokenRow = memo(function TokenRow({
 					}}
 					type="button"
 				>
-					<svg
+					<StarIcon
 						className="h-3.5 w-3.5 sm:h-4 sm:w-4"
 						fill={isFavorite ? "currentColor" : "none"}
-						stroke="currentColor"
-						strokeWidth={2}
-						viewBox="0 0 24 24"
-					>
-						<path
-							d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-						/>
-					</svg>
+					/>
 				</button>
 
 				{/* main row content - clickable to expand */}
@@ -151,21 +147,9 @@ const TokenRow = memo(function TokenRow({
 									)}
 								>
 									{isPositive ? (
-										<svg className="h-2 w-2 sm:h-3 sm:w-3" fill="currentColor" viewBox="0 0 20 20">
-											<path
-												clipRule="evenodd"
-												d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
-												fillRule="evenodd"
-											/>
-										</svg>
+										<ArrowUpIcon className="h-2 w-2 sm:h-3 sm:w-3" />
 									) : (
-										<svg className="h-2 w-2 sm:h-3 sm:w-3" fill="currentColor" viewBox="0 0 20 20">
-											<path
-												clipRule="evenodd"
-												d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"
-												fillRule="evenodd"
-											/>
-										</svg>
+										<ArrowDownIcon className="h-2 w-2 sm:h-3 sm:w-3" />
 									)}
 									{formatPercent(ticker.priceChangePercent)}
 								</div>

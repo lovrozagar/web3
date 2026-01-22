@@ -3,11 +3,12 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { useEffect, useRef } from "react"
 import { toast } from "sonner"
-import { useAccount, useChainId } from "wagmi"
-import { cn, truncateAddress } from "@/lib/utils"
+import { useChainId, useConnection } from "wagmi"
+import { cn } from "@/utils/cn"
+import { truncateAddress } from "@/utils/format"
 
 export function WalletConnect() {
-	const { address, isConnected } = useAccount()
+	const { address, isConnected } = useConnection()
 	const chainId = useChainId()
 
 	const prevAddressRef = useRef<string | undefined>(undefined)

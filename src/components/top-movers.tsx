@@ -2,8 +2,9 @@
 
 import { useMemo } from "react"
 import { useBinanceTicker } from "@/hooks/use-binance-ticker"
-import { cn, formatPercent, formatPrice } from "@/lib/utils"
 import { SUPPORTED_TOKENS } from "@/types"
+import { cn } from "@/utils/cn"
+import { formatPercent, formatPrice } from "@/utils/format"
 
 interface MoverItemProps {
 	symbol: string

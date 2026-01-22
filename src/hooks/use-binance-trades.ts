@@ -1,8 +1,9 @@
 "use client"
 
 import { useCallback, useState } from "react"
-import { BINANCE_WS_BASE } from "@/lib/constants"
-import { useWebSocket, type WebSocketState } from "@/lib/websocket-manager"
+import type { WebSocketState } from "@/classes/websocket-manager"
+import { BINANCE_WS_BASE } from "@/constants/binance"
+import { useWebSocket } from "@/hooks/use-websocket"
 
 export interface TradeData {
 	id: number

@@ -1,10 +1,11 @@
 "use client"
 
 import { useCallback, useRef, useState } from "react"
-import { BINANCE_WS_BASE, TICKER_STREAMS } from "@/lib/constants"
-import { getPriceDirection } from "@/lib/utils"
-import { useWebSocket, type WebSocketState } from "@/lib/websocket-manager"
+import type { WebSocketState } from "@/classes/websocket-manager"
+import { BINANCE_WS_BASE, TICKER_STREAMS } from "@/constants/binance"
+import { useWebSocket } from "@/hooks/use-websocket"
 import type { PriceDirection, TickerData } from "@/types"
+import { getPriceDirection } from "@/utils/price"
 
 interface BinanceTickerMessage {
 	data: {
