@@ -19,7 +19,8 @@
   },
   "cSpell.words": [
     "rainbowkit",
-    "Wagmi"
+    "Wagmi",
+    "WALLETCONNECT"
   ],
   "editor.codeActionsOnSave": {
     "source.fixAll.biome": "explicit",
